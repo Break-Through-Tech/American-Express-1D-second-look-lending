@@ -107,7 +107,7 @@ def _aggregate_all_data(tables: dict[str, pd.DataFrame], category_lists: dict[st
     master_data = master_data.merge(tax_registry_a_1_agg, on="case_id", how="left")
 
 
-    # !! DEPTH 1 & 2 data squashing & merging with base data
+    # DEPTH 1 & 2
     # credit bureau
     credit_bureau_a_1 = combine_credit_bureau_a_1(tables["credit_bureau_a_1_0"], tables["credit_bureau_a_1_1"])
     credit_bureau_a_agg = aggregate_credit_bureau_a_1(credit_bureau_a_1, 
