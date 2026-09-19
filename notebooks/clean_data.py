@@ -1,6 +1,11 @@
+import os
 import pandas as pd
 
+
+# -------------------------
 # Load train and test datasets
+# -------------------------
+
 train = pd.read_csv("data/aggregated/train_aggregated.csv")
 test = pd.read_csv("data/aggregated/test_aggregated.csv")
 
@@ -13,22 +18,51 @@ print("Test:", test.isna().sum().sum())
 
 
 # -------------------------
-# Handle numeric missing values
+# Handle missing structural count values
+# Missing means there were no corresponding records
+# -------------------------
+
+count_cols = [
+    "applprev_rowcount",
+    "person_rowcount",
+    "tax_rowcount",
+    "bureau_rowcount",
+    "payment_rowcount_sum"
+]
+
+for col in count_cols:
+    train[col] = train[col].fillna(0)
+    test[col] = test[col].fillna(0)
+
+
+# -------------------------
+# Handle missing category counts
+# No corresponding records means zero of that category
+# -------------------------
+
+count_prefixes = [
+    "status_219L_",
+    "name_4527232M_",
+    "classificationofcontr_13M_"
+]
+
+for col in train.columns:
+    if any(col.startswith(prefix) for prefix in count_prefixes):
+        train[col] = train[col].fillna(0)
+        test[col] = test[col].fillna(0)
+
+
+# -------------------------
+# Handle remaining numeric missing values
+# -1 represents an unknown/missing value
 # -------------------------
 
 numeric_cols = train.select_dtypes(include=["number"]).columns
 
 for col in numeric_cols:
-
-    # Make sure the column exists in test
     if col in test.columns:
-
-        # Calculate median using TRAINING data only
-        median = train[col].median()
-
-        # Use training median for both
-        train[col] = train[col].fillna(median)
-        test[col] = test[col].fillna(median)
+        train[col] = train[col].fillna(-1)
+        test[col] = test[col].fillna(-1)
 
 
 # -------------------------
@@ -45,7 +79,7 @@ test["description_5085714M"] = (
 
 
 # -------------------------
-# Verify
+# Verify missing values
 # -------------------------
 
 print("\nMissing values after:")
@@ -53,89 +87,80 @@ print("Train:", train.isna().sum().sum())
 print("Test:", test.isna().sum().sum())
 
 
+""" # -------------------------
+# Check potential outliers
 # -------------------------
-# Handle outliers
-# -------------------------
+# Potential outliers were reviewed using the IQR method.
+# Extreme values were retained because they were plausible
+# and may contain meaningful credit-risk information.
+# Code kept and commented out in case we need to revisit.
 
-outlier_cols = [
-    "mainoccupationinc_384A",
-    "credamount_770A",
-    "annuity_780A",
-    "days_employed_700P",
-    "credamount_590A_mean",
-    "credamount_590A_max",
-    "credamount_590A_median",
-    "mainoccupationinc_384A_mean",
-    "mainoccupationinc_384A_max",
-    "mainoccupationinc_384A_median",
-    "income_total",
-    "empl_employedtotal_800L_mean",
-    "empl_employedtotal_800L_max",
-    "empl_employedtotal_800L_median",
-    "amount_4527230A_mean",
-    "amount_4527230A_max",
-    "amount_4527230A_median",
-    "credamount_770A_mean",
-    "credamount_770A_max",
-    "credamount_770A_median",
-    "overdueamountmax_950A_mean",
-    "overdueamountmax_950A_max",
-    "overdueamountmax_950A_median",
-    "pmts_dpdvalue_108P_mean",
-    "pmts_dpdvalue_108P_max",
-    "pmts_dpdvalue_108P_median",
-    "pmts_overdue_1140A_contractmax_max",
-    "pmts_overdue_1140A_allpayments_mean",
-    "pmts_overdue_1140A_allpayments_median"
+print("\nPOTENTIAL OUTLIERS:")
+
+# Columns where IQR outlier detection is not appropriate
+exclude_cols = [
+    "case_id",
+    "target",
+    "MONTH",
+    "WEEK_NUM",
+    "numberofqueries_146L",
+    "applprev_rowcount",
+    "person_rowcount",
+    "tax_rowcount",
+    "bureau_rowcount",
+    "payment_rowcount_sum"
 ]
 
-for col in outlier_cols:
+# Category/count features
+exclude_prefixes = [
+    "status_219L_",
+    "name_4527232M_",
+    "classificationofcontr_13M_",
+    "housingtype_772M_"
+]
 
-    # Calculate boundaries from training data only
-    q1 = train[col].quantile(0.25)
-    q3 = train[col].quantile(0.75)
+numeric_cols = train.select_dtypes(include=["number"]).columns
 
-    iqr = q3 - q1
+for col in numeric_cols:
 
-    lower_bound = q1 - 1.5 * iqr
-    upper_bound = q3 + 1.5 * iqr
+    if col in exclude_cols:
+        continue
 
-    # Cap values outside the boundaries
-    train[col] = train[col].clip(
-        lower=lower_bound,
-        upper=upper_bound
-    )
+    if any(col.startswith(prefix) for prefix in exclude_prefixes):
+        continue
 
-    test[col] = test[col].clip(
-        lower=lower_bound,
-        upper=upper_bound
-    )
+    # Exclude -1 because it represents missing data
+    values = train.loc[train[col] != -1, col]
 
-print("\nOutlier handling complete.")
+    if len(values) == 0:
+        continue
 
-# -------------------------
-# Verify outlier handling
-# -------------------------
-
-print("\nOUTLIERS AFTER CAPPING:")
-
-for col in outlier_cols:
-
-    q1 = train[col].quantile(0.25)
-    q3 = train[col].quantile(0.75)
+    q1 = values.quantile(0.25)
+    q3 = values.quantile(0.75)
 
     iqr = q3 - q1
 
     lower_bound = q1 - 1.5 * iqr
     upper_bound = q3 + 1.5 * iqr
 
-    outliers = (
-        (train[col] < lower_bound) |
-        (train[col] > upper_bound)
+    potential_outliers = (
+        (values < lower_bound) |
+        (values > upper_bound)
     ).sum()
 
-    print(f"{col}: {outliers}")
-import os
+    if potential_outliers > 0:
+        percent = (potential_outliers / len(values)) * 100
+
+        print(
+            f"{col}: "
+            f"min={values.min()}, "
+            f"max={values.max()}, "
+            f"lower={lower_bound:.2f}, "
+            f"upper={upper_bound:.2f}, "
+            f"outliers={potential_outliers}, "
+            f"percent={percent:.2f}%"
+        ) """
+
 
 # -------------------------
 # Save cleaned datasets
@@ -143,7 +168,14 @@ import os
 
 os.makedirs("data/cleaned", exist_ok=True)
 
-train.to_csv("data/cleaned/train_cleaned.csv", index=False)
-test.to_csv("data/cleaned/test_cleaned.csv", index=False)
+train.to_csv(
+    "data/cleaned/train_cleaned.csv",
+    index=False
+)
+
+test.to_csv(
+    "data/cleaned/test_cleaned.csv",
+    index=False
+)
 
 print("\nCleaned datasets saved to data/cleaned/")
