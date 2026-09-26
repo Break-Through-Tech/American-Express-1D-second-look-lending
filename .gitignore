@@ -6,3 +6,5 @@ data/test/*
 data/aggregated/**.csv
 data/cleaned/*.csv
 data/preprocessed/*.csv
+
+.DS_Store

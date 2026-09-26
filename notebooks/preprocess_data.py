@@ -16,6 +16,8 @@ main()
 import os
 import pandas as pd
 from sklearn.compose import ColumnTransformer
+from sklearn.impute import MissingIndicator, SimpleImputer
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 INPUT_DIR = "data/cleaned"
@@ -23,7 +25,7 @@ OUTPUT_DIR = "data/preprocessed"
 
 def convert(df) -> pd.DataFrame:
     """
-    This method converts columns holding string date variables into numerical representations 
+    This method converts columns holding string date variables into numerical representations
     like age in years or the month. Standardizes categorical variables.
     """
 
@@ -39,17 +41,17 @@ def convert(df) -> pd.DataFrame:
         # date of application - date of applicant's birth to calculate their age
         df['birth_259D'] = pd.to_datetime(df['birth_259D'])
         df['age_in_years'] = (df['date_decision'] - df['birth_259D']).dt.days / 365.2425
-        df.drop(columns=['birth_259D'])
+        df = df.drop(columns=['birth_259D'])
     if 'approvaldate_319D' in df.columns:
         # approvaldate_319D is when the applicant's previous loan/credit line was approved
         # We want to find the # of days since prior approval by doing
         # date of decision - approval date
         df['approvaldate_319D'] = pd.to_datetime(df['approvaldate_319D'])
         df['days_since_prior_arrival'] = (df['date_decision'] - df['approvaldate_319D']).dt.days
-        df.drop(columns=['approvaldate_319D'])
+        df = df.drop(columns=['approvaldate_319D'])
 
     if 'date_decision' in df.columns:
-        df.drop(columns=['date_decision'])
+        df = df.drop(columns=['date_decision'])
 
     for col in ['decision_month', 'age_in_years', 'days_since_prior_arrival']:
         if col in df.columns:
@@ -81,15 +83,23 @@ def main():
 
     print(f"There are {len(numeric_cols)} numerical columns and {len(categorical_cols)} categorical columns")
 
-    # Column Transformer to apply different data preprocessing steps to different columns of an array or pandas DataFrame at the same time, 
+    # Column Transformer to apply different data preprocessing steps to different columns of an array or pandas DataFrame at the same time,
     # and create a single object to then call fit_transform() in order to both learn parameters from the data and modify the data.
 
     # Scale the numeric columns (mean, max, median, and numeric variables) using StandardScalar so that each feature has a mean of 0 and a st. deviation of 1.
 
-    preprocessor = ColumnTransformer(transformers=[
-        ('num', StandardScaler(), numeric_cols), 
-        ('categorical', OneHotEncoder(handle_unknown='ignore', sparse_output=False), categorical_cols)
+    # clean_data.py uses -1 to mean "unknown". Fill those with the training median before scaling,
+    # and add a separate 0/1 "was missing" column for each affected feature (left unscaled).
+    numeric_pipeline = Pipeline([
+        ("unknown_to_median", SimpleImputer(missing_values=-1, strategy="median")),
+        ("scale", StandardScaler()),
     ])
+
+    preprocessor = ColumnTransformer(transformers=[
+        ('num', numeric_pipeline, numeric_cols),
+        ('missing', MissingIndicator(missing_values=-1), numeric_cols),
+        ('categorical', OneHotEncoder(handle_unknown='ignore', sparse_output=False), categorical_cols)
+    ], verbose_feature_names_out=False)
 
     # We separate exclusion columns to prevent them from being altered by standard scalar and one hot encoder
 
@@ -114,28 +124,18 @@ def main():
     X_train_transformed = preprocessor.fit_transform(X_train)
     X_test_transformed = preprocessor.transform(X_test)  # transform for testing data
 
-    new_categorical_features = preprocessor.named_transformers_['categorical'].get_feature_names_out(categorical_cols)
-    all_features = numeric_cols + list(new_categorical_features)
+    all_features = list(preprocessor.get_feature_names_out())
 
     train_preprocessed = pd.DataFrame(X_train_transformed, columns=all_features)
     test_preprocessed = pd.DataFrame(X_test_transformed, columns=all_features)
 
-    for col in exclusions:
-        if col in y_test_id:
-            test_preprocessed[col] = y_test_id[col].values
-        elif col in y_train_id:
-            train_preprocessed[col] = y_train_id[col].values
+    for col in exclude:
+        train_preprocessed[col] = y_train_id[col].values
+    for col in exclude_2:
+        test_preprocessed[col] = y_test_id[col].values
 
-    train_preprocessed.to_csv(f"{OUTPUT_DIR}/train_preprocessed.csv", index=False)
-    test_preprocessed.to_csv(f"{OUTPUT_DIR}/test_preprocessed.csv", index=False)
+    train_preprocessed.to_csv(f"{OUTPUT_DIR}/train_preprocessed.csv", index=False, float_format="%.6f")
+    test_preprocessed.to_csv(f"{OUTPUT_DIR}/test_preprocessed.csv", index=False, float_format="%.6f")
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
