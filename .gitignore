@@ -3,5 +3,8 @@ __pycache__
 
 data/train/*
 data/test/*
-data/aggregated/*
+data/aggregated/**.csv
+data/cleaned/*.csv
+data/preprocessed/*.csv
+
 .DS_Store
