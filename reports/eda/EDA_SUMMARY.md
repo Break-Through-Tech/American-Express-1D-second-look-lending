@@ -108,30 +108,50 @@ individual separation is weaker, which shows why thin-file predictions are more 
 The direction written beside each feature matters. For example, higher days past due is associated with
 more defaults, while higher tax-registry amounts and longer employment are associated with fewer defaults.
 
-## Figure 7: Default Rate Across Feature Deciles
+## Figure 7: Default Rates from Lowest to Highest Feature Values
 
-Each feature is sorted from low to high and divided into ten similarly sized applicant groups.
+For each feature, applicants with usable values are sorted from low to high and divided into ten
+approximately equal-sized groups. Group 1 contains the lowest 10% of values and group 10 contains the
+highest 10%. The dashed line in each chart shows the average default rate for that applicant segment.
 
-| Feature | Lowest-Decile Default | Highest-Decile Default |
+### Overall Applicants
+
+| Feature | Lowest-Value Group | Highest-Value Group |
 | --- | ---: | ---: |
 | Risk assessment score | 1.4% | 54.1% |
 | Average days past due | 5.3% | 40.5% |
 | Credit-to-income ratio | 15.4% | 23.4% |
 | Employment share of life | 28.4% | 13.7% |
 
-Risk assessment and days-past-due behavior have strong increasing risk gradients. Credit-to-income has a
-smaller but consistent increase. Employment share of life moves in the opposite direction: longer
-employment relative to age is associated with lower default.
+Risk assessment and days-past-due behavior show the clearest increase in risk. Credit-to-income rises
+more gradually, while longer employment relative to age is associated with lower default.
+
+### Thin-File Applicants
+
+| Feature | Lowest-Value Group | Highest-Value Group |
+| --- | ---: | ---: |
+| Average tax-registry amount | 36.0% | 16.6% |
+| Employment duration | 35.1% | 17.5% |
+| Total household income | 29.8% | 19.7% |
+| Credit-to-income ratio | 21.4% | 30.2% |
+
+The thin-file row focuses only on information that remains available without traditional bureau history.
+Higher tax-registry amounts, longer employment, and higher household income are associated with lower
+default. Credit-to-income moves in the opposite direction, with the highest-value group reaching a 30.2%
+default rate.
 
 ## Main Takeaways
 
-1. Validate by time because thin-file risk changes substantially across the training period.
-2. Evaluate thin-file and established applicants separately instead of relying only on overall metrics.
-3. Preserve missingness and source-coverage indicators because bureau absence is central to this task.
-4. For thin-file applicants, prioritize education, tax-registry amounts, employment, income,
-   affordability, and prior-application information.
-5. These findings describe associations, not causes. Confirm them with validation and calibration before
-   using them in lending decisions.
+1. Thin-file applicants default more often than established applicants, and their default rate changes
+   substantially across the training period.
+2. Traditional bureau measures provide strong risk separation for established applicants but are absent
+   for thin-file applicants.
+3. Education, external-source coverage, tax-registry amounts, employment, household income, and
+   credit-to-income provide useful ways to distinguish risk within the thin-file segment.
+4. Thin-file applicants with stronger employment, income, and tax-registry values consistently show lower
+   default rates, while higher credit-to-income is associated with higher default.
+5. The most useful second-look approach is to combine several available non-bureau signals rather than
+   relying on any single feature.
 
-All counts, rates, distributions, and time trends use the full training dataset. Single-feature signal
-rankings use a fixed 200,000-row sample for faster and reproducible execution.
+The counts, rates, distributions, and time trends come from the full training dataset. The feature-ranking
+chart uses a fixed 200,000-row sample so it runs quickly and produces the same result each time.

@@ -49,12 +49,20 @@ NUMERIC_DISTRIBUTIONS = [
     "age_in_years",
     "pmts_dpdvalue_108P_mean",
 ]
-BINNED_FEATURES = [
-    "riskassesment_940T",
-    "pmts_dpdvalue_108P_mean",
-    "credit_to_income",
-    "employment_share_of_life",
-]
+GROUPED_RATE_FEATURES = {
+    "Overall": [
+        "riskassesment_940T",
+        "pmts_dpdvalue_108P_mean",
+        "credit_to_income",
+        "employment_share_of_life",
+    ],
+    "Thin-file": [
+        "amount_4527230A_mean",
+        "days_employed_700P",
+        "income_total",
+        "credit_to_income",
+    ],
+}
 
 DISPLAY_NAMES = {
     "education_927M": "Education category",
@@ -248,19 +256,32 @@ def feature_availability(data: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def binned_default_rates(data: pd.DataFrame) -> pd.DataFrame:
-    """Calculate default rates across ten equally sized feature groups."""
+def feature_group_default_rates(data: pd.DataFrame) -> pd.DataFrame:
+    """Calculate default rates across ten approximately equal-sized value groups."""
     rows = []
-    for feature in BINNED_FEATURES:
-        values = clean_numeric(data[feature])
-        valid = values.notna()
-        grouped = pd.DataFrame({"value": values[valid], TARGET: data.loc[valid, TARGET]})
-        grouped["decile"] = pd.qcut(grouped["value"], 10, labels=False, duplicates="drop")
-        summary = grouped.groupby("decile", observed=True)[TARGET].mean().reset_index(
-            name="default_rate"
-        )
-        summary.insert(0, "feature", feature)
-        rows.append(summary)
+    segments = {
+        "Overall": data,
+        "Thin-file": data[data[THIN_FILE].eq(1)],
+    }
+    for segment, features in GROUPED_RATE_FEATURES.items():
+        segment_data = segments[segment]
+        for feature in features:
+            values = clean_numeric(segment_data[feature])
+            valid = values.notna()
+            grouped = pd.DataFrame(
+                {"value": values[valid], TARGET: segment_data.loc[valid, TARGET]}
+            )
+            grouped["value_group"] = pd.qcut(
+                grouped["value"], 10, labels=False, duplicates="drop"
+            )
+            summary = (
+                grouped.groupby("value_group", observed=True)[TARGET]
+                .agg(applicants="size", default_rate="mean")
+                .reset_index()
+            )
+            summary.insert(0, "feature", feature)
+            summary.insert(0, "segment", segment)
+            rows.append(summary)
     return pd.concat(rows, ignore_index=True)
 
 
@@ -425,17 +446,42 @@ def plot_numeric_signal(signal: pd.DataFrame) -> None:
     save_figure(figure, "06_numeric_feature_signal.png")
 
 
-def plot_binned_rates(binned_rates: pd.DataFrame, overall_rate: float) -> None:
-    figure, axes = plt.subplots(2, 2, figsize=(12, 8))
-    for axis, feature in zip(axes.flat, BINNED_FEATURES):
-        binned = binned_rates[binned_rates["feature"] == feature]
-        axis.plot(binned["decile"] + 1, binned["default_rate"], marker="o",
-                  color=COLORS["overall"], linewidth=2)
-        axis.axhline(overall_rate, color="gray", linestyle="--", linewidth=1)
-        axis.set(title=display_name(feature), xlabel="Feature decile (low to high)",
-                 ylabel="Default rate", xticks=range(1, len(binned) + 1))
-        axis.yaxis.set_major_formatter(lambda value, _: f"{value:.0%}")
-    figure.suptitle("Default rate across numeric feature deciles", y=1.02)
+def plot_feature_group_rates(grouped_rates: pd.DataFrame, reference_rates: dict[str, float]) -> None:
+    figure, axes = plt.subplots(2, 4, figsize=(17, 8), sharey=True)
+    for row, (segment, features) in enumerate(GROUPED_RATE_FEATURES.items()):
+        color = COLORS["overall"] if segment == "Overall" else COLORS["thin"]
+        for column, feature in enumerate(features):
+            axis = axes[row, column]
+            grouped = grouped_rates[
+                (grouped_rates["segment"] == segment)
+                & (grouped_rates["feature"] == feature)
+            ]
+            axis.plot(
+                grouped["value_group"] + 1,
+                grouped["default_rate"],
+                marker="o",
+                color=color,
+                linewidth=2,
+            )
+            axis.axhline(reference_rates[segment], color="gray", linestyle="--", linewidth=1)
+            axis.set(
+                title=f"{segment}: {display_name(feature)}",
+                xlabel="Value group\n(lowest 10% to highest 10%)",
+                xticks=range(1, len(grouped) + 1),
+                ylim=(0, 0.60),
+            )
+            if column == 0:
+                axis.set_ylabel("Default rate")
+            axis.yaxis.set_major_formatter(lambda value, _: f"{value:.0%}")
+    figure.suptitle("Default rates from lowest to highest feature values", y=1.03)
+    figure.text(
+        0.5,
+        0.005,
+        "Each feature is divided into 10 approximately equal-sized applicant groups; "
+        "the dashed line is the segment average.",
+        ha="center",
+        fontsize=10,
+    )
     save_figure(figure, "07_binned_default_rates.png")
 
 
@@ -476,7 +522,11 @@ def main() -> None:
     coverage = data.groupby("external_coverage", observed=True)[TARGET].agg(
         applicants="size", default_rate="mean"
     ).reset_index()
-    binned_rates = binned_default_rates(data)
+    grouped_rates = feature_group_default_rates(data)
+    reference_rates = {
+        "Overall": data[TARGET].mean(),
+        "Thin-file": segments.set_index("segment").loc["Thin-file", "default_rate"],
+    }
 
     print("Creating figures...")
     plot_target_and_segments(data, segments)
@@ -485,7 +535,7 @@ def main() -> None:
     plot_numeric_distributions(data)
     plot_education_and_coverage(rates, coverage)
     plot_numeric_signal(signal)
-    plot_binned_rates(binned_rates, data[TARGET].mean())
+    plot_feature_group_rates(grouped_rates, reference_rates)
 
     expected = [OUTPUT_DIR / "EDA_SUMMARY.md"] + [
         FIGURES_DIR / f"{number:02d}_{name}.png"
