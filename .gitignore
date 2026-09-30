@@ -8,3 +8,4 @@ data/cleaned/*.csv
 data/preprocessed/*.csv
 
 .DS_Store
+data/features/*.csv
