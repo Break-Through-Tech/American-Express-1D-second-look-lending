@@ -1,0 +1,238 @@
+segment,feature,valid_rows,auc,signal_strength,direction
+Established,riskassesment_940T,133036,0.798529,0.597058,higher values -> more defaults
+Established,pmts_dpdvalue_108P_mean,140053,0.714458,0.428916,higher values -> more defaults
+Established,pmts_dpdvalue_108P_median,140053,0.710209,0.420417,higher values -> more defaults
+Established,classificationofcontr_13M_54ddc605,140053,0.705166,0.410332,higher values -> more defaults
+Established,pmts_dpdvalue_108P_max,140053,0.675841,0.351682,higher values -> more defaults
+Established,credamount_770A_mean,140053,0.674345,0.348690,higher values -> more defaults
+Established,credamount_770A_median,140053,0.666970,0.333940,higher values -> more defaults
+Established,overdueamountmax_950A_mean,132611,0.648657,0.297313,higher values -> more defaults
+Established,overdueamountmax_950A_median,132611,0.644211,0.288422,higher values -> more defaults
+Established,classificationofcontr_13M_fe64f125,140053,0.355943,0.288114,higher values -> fewer defaults
+Established,numberofqueries_146L,140053,0.640935,0.281870,higher values -> more defaults
+Established,credamount_770A_max,140053,0.632565,0.265131,higher values -> more defaults
+Established,classificationofcontr_13M_6f5666c7,140053,0.376271,0.247458,higher values -> fewer defaults
+Established,overdueamountmax_950A_max,132611,0.621915,0.243830,higher values -> more defaults
+Established,classificationofcontr_13M_d8bf6dd7,140053,0.384712,0.230576,higher values -> fewer defaults
+Established,amount_4527230A_mean,104936,0.386654,0.226693,higher values -> fewer defaults
+Established,amount_4527230A_median,104936,0.389791,0.220417,higher values -> fewer defaults
+Established,classificationofcontr_13M_01851564,140053,0.608416,0.216833,higher values -> more defaults
+Established,requested_vs_past_credit,137187,0.399431,0.201139,higher values -> fewer defaults
+Established,amount_4527230A_max,104936,0.405255,0.189490,higher values -> fewer defaults
+Established,days_employed_700P,118986,0.405838,0.188323,higher values -> fewer defaults
+Established,dpd_bucket,140053,0.589741,0.179481,higher values -> more defaults
+Established,empl_employedtotal_800L_mean,123364,0.413591,0.172817,higher values -> fewer defaults
+Established,empl_employedtotal_800L_median,123364,0.413591,0.172817,higher values -> fewer defaults
+Established,employment_share_of_life,118986,0.415682,0.168636,higher values -> fewer defaults
+Established,empl_employedtotal_800L_max,123364,0.420744,0.158511,higher values -> fewer defaults
+Established,mainoccupationinc_384A_mean,136317,0.424882,0.150237,higher values -> fewer defaults
+Established,mainoccupationinc_384A_median,136317,0.424882,0.150237,higher values -> fewer defaults
+Established,credamount_590A_mean,112157,0.429393,0.141214,higher values -> fewer defaults
+Established,credamount_590A_median,112157,0.430214,0.139572,higher values -> fewer defaults
+Established,mainoccupationinc_384A_max,136317,0.430816,0.138369,higher values -> fewer defaults
+Established,mainoccupationinc_384A,133124,0.436068,0.127864,higher values -> fewer defaults
+Established,credamount_590A_max,112157,0.441803,0.116394,higher values -> fewer defaults
+Established,income_total,140053,0.448365,0.103270,higher values -> fewer defaults
+Established,annuity_to_income,119833,0.544854,0.089708,higher values -> more defaults
+Established,requested_vs_prior_application,109872,0.544631,0.089261,higher values -> more defaults
+Established,credit_to_income,130393,0.541631,0.083262,higher values -> more defaults
+Established,overdue_to_credit,132611,0.538937,0.077874,higher values -> more defaults
+Established,income_vs_tax,99691,0.512213,0.024426,higher values -> more defaults
+Established,classificationofcontr_13M_ba38dde4,140053,0.490147,0.019706,higher values -> fewer defaults
+Established,tax_rowcount,140053,0.505001,0.010001,higher values -> more defaults
+Established,housingtype_772M_a19ac633,140053,0.495196,0.009608,higher values -> fewer defaults
+Established,total_external_records,140053,0.503218,0.006436,higher values -> more defaults
+Established,status_219L_fa96ae9d,140053,0.503130,0.006259,higher values -> more defaults
+Established,housingtype_772M_39303e4a,140053,0.503062,0.006125,higher values -> more defaults
+Established,name_4527232M_28a6bf7a,140053,0.502958,0.005915,higher values -> more defaults
+Established,status_219L_dedbd039,140053,0.497061,0.005879,higher values -> fewer defaults
+Established,credamount_770A,137187,0.497088,0.005824,higher values -> fewer defaults
+Established,credit_to_annuity,123505,0.497168,0.005665,higher values -> fewer defaults
+Established,status_219L_a2839ee4,140053,0.497698,0.004604,higher values -> fewer defaults
+Established,bureau_rowcount,140053,0.502300,0.004599,higher values -> more defaults
+Established,payment_rowcount_sum,140053,0.502183,0.004367,higher values -> more defaults
+Established,has_tax_record,140053,0.502138,0.004277,higher values -> more defaults
+Established,months_since_last_application,108979,0.501819,0.003639,higher values -> more defaults
+Established,age_in_years,140053,0.498436,0.003127,higher values -> fewer defaults
+Established,name_4527232M_ab4fffa8,140053,0.501521,0.003041,higher values -> more defaults
+Established,person_rowcount,140053,0.498497,0.003006,higher values -> fewer defaults
+Established,has_second_person,140053,0.498497,0.003006,higher values -> fewer defaults
+Established,name_4527232M_5fd4af02,140053,0.501488,0.002976,higher values -> more defaults
+Established,housingtype_772M_97bb64e3,140053,0.501443,0.002885,higher values -> more defaults
+Established,housingtype_772M_2339333a,140053,0.498563,0.002874,higher values -> fewer defaults
+Established,pmts_overdue_1140A_allpayments_median,128072,0.498607,0.002787,higher values -> fewer defaults
+Established,external_coverage,140053,0.501375,0.002750,higher values -> more defaults
+Established,applprev_rowcount,140053,0.498632,0.002736,higher values -> fewer defaults
+Established,name_4527232M_69c767ed,140053,0.501349,0.002698,higher values -> more defaults
+Established,name_4527232M_2e8792b8,140053,0.501195,0.002390,higher values -> more defaults
+Established,annuity_780A,126083,0.501181,0.002362,higher values -> more defaults
+Established,name_4527232M_e4848b42,140053,0.500938,0.001876,higher values -> more defaults
+Established,pmts_overdue_1140A_allpayments_mean,128072,0.499095,0.001809,higher values -> fewer defaults
+Established,name_4527232M_43036c45,140053,0.499237,0.001527,higher values -> fewer defaults
+Established,n_unknown,140053,0.499266,0.001468,higher values -> fewer defaults
+Established,housingtype_772M_c93f8128,140053,0.499389,0.001223,higher values -> fewer defaults
+Established,has_prior_application,140053,0.499406,0.001187,higher values -> fewer defaults
+Established,payments_per_contract,140053,0.499479,0.001042,higher values -> fewer defaults
+Established,name_4527232M_e30629fa,140053,0.500484,0.000968,higher values -> more defaults
+Established,name_4527232M_4086b8cf,140053,0.499645,0.000711,higher values -> fewer defaults
+Established,name_4527232M_22eca1b4,140053,0.499729,0.000542,higher values -> fewer defaults
+Established,pmts_overdue_1140A_contractmax_max,128072,0.500142,0.000283,higher values -> more defaults
+Established,is_thin_file,140053,,,not available
+Overall,riskassesment_940T,133036,0.798529,0.597058,higher values -> more defaults
+Overall,pmts_dpdvalue_108P_mean,140053,0.714458,0.428916,higher values -> more defaults
+Overall,pmts_dpdvalue_108P_median,140053,0.710209,0.420417,higher values -> more defaults
+Overall,pmts_dpdvalue_108P_max,140053,0.675841,0.351682,higher values -> more defaults
+Overall,credamount_770A_mean,140053,0.674345,0.348690,higher values -> more defaults
+Overall,credamount_770A_median,140053,0.666970,0.333940,higher values -> more defaults
+Overall,overdueamountmax_950A_mean,132611,0.648657,0.297313,higher values -> more defaults
+Overall,overdueamountmax_950A_median,132611,0.644211,0.288422,higher values -> more defaults
+Overall,numberofqueries_146L,140053,0.640935,0.281870,higher values -> more defaults
+Overall,credamount_770A_max,140053,0.632565,0.265131,higher values -> more defaults
+Overall,overdueamountmax_950A_max,132611,0.621915,0.243830,higher values -> more defaults
+Overall,classificationofcontr_13M_fe64f125,200000,0.388027,0.223946,higher values -> fewer defaults
+Overall,classificationofcontr_13M_54ddc605,200000,0.608721,0.217442,higher values -> more defaults
+Overall,amount_4527230A_mean,149823,0.397222,0.205556,higher values -> fewer defaults
+Overall,classificationofcontr_13M_d8bf6dd7,200000,0.399230,0.201540,higher values -> fewer defaults
+Overall,requested_vs_past_credit,137187,0.399431,0.201139,higher values -> fewer defaults
+Overall,amount_4527230A_median,149823,0.399711,0.200578,higher values -> fewer defaults
+Overall,classificationofcontr_13M_6f5666c7,200000,0.407723,0.184554,higher values -> fewer defaults
+Overall,dpd_bucket,140053,0.589741,0.179481,higher values -> more defaults
+Overall,amount_4527230A_max,149823,0.413914,0.172172,higher values -> fewer defaults
+Overall,days_employed_700P,169996,0.414522,0.170955,higher values -> fewer defaults
+Overall,empl_employedtotal_800L_mean,176192,0.421276,0.157447,higher values -> fewer defaults
+Overall,empl_employedtotal_800L_median,176192,0.421276,0.157447,higher values -> fewer defaults
+Overall,employment_share_of_life,169996,0.424406,0.151188,higher values -> fewer defaults
+Overall,empl_employedtotal_800L_max,176192,0.427602,0.144795,higher values -> fewer defaults
+Overall,mainoccupationinc_384A_mean,194697,0.431895,0.136211,higher values -> fewer defaults
+Overall,mainoccupationinc_384A_median,194697,0.431895,0.136211,higher values -> fewer defaults
+Overall,is_thin_file,200000,0.562945,0.125891,higher values -> more defaults
+Overall,credamount_590A_mean,160167,0.437219,0.125562,higher values -> fewer defaults
+Overall,n_unknown,200000,0.562389,0.124778,higher values -> more defaults
+Overall,mainoccupationinc_384A_max,194697,0.437690,0.124620,higher values -> fewer defaults
+Overall,credamount_590A_median,160167,0.437991,0.124018,higher values -> fewer defaults
+Overall,bureau_rowcount,200000,0.438051,0.123897,higher values -> fewer defaults
+Overall,mainoccupationinc_384A,190072,0.440347,0.119307,higher values -> fewer defaults
+Overall,payment_rowcount_sum,200000,0.440633,0.118734,higher values -> fewer defaults
+Overall,credamount_590A_max,160167,0.448615,0.102769,higher values -> fewer defaults
+Overall,total_external_records,200000,0.451521,0.096957,higher values -> fewer defaults
+Overall,income_total,200000,0.453824,0.092352,higher values -> fewer defaults
+Overall,external_coverage,200000,0.456392,0.087216,higher values -> fewer defaults
+Overall,classificationofcontr_13M_01851564,200000,0.542951,0.085903,higher values -> more defaults
+Overall,annuity_to_income,171042,0.541282,0.082563,higher values -> more defaults
+Overall,requested_vs_prior_application,156943,0.540330,0.080661,higher values -> more defaults
+Overall,credit_to_income,186223,0.539373,0.078745,higher values -> more defaults
+Overall,overdue_to_credit,132611,0.538937,0.077874,higher values -> more defaults
+Overall,classificationofcontr_13M_ba38dde4,200000,0.463956,0.072088,higher values -> fewer defaults
+Overall,income_vs_tax,142321,0.511036,0.022072,higher values -> more defaults
+Overall,months_since_last_application,155642,0.491261,0.017478,higher values -> fewer defaults
+Overall,age_in_years,200000,0.496071,0.007858,higher values -> fewer defaults
+Overall,tax_rowcount,200000,0.503316,0.006632,higher values -> more defaults
+Overall,housingtype_772M_a19ac633,200000,0.497188,0.005624,higher values -> fewer defaults
+Overall,status_219L_fa96ae9d,200000,0.502385,0.004769,higher values -> more defaults
+Overall,housingtype_772M_39303e4a,200000,0.502091,0.004182,higher values -> more defaults
+Overall,credit_to_annuity,176382,0.497936,0.004128,higher values -> fewer defaults
+Overall,name_4527232M_2e8792b8,200000,0.501941,0.003882,higher values -> more defaults
+Overall,status_219L_dedbd039,200000,0.498107,0.003786,higher values -> fewer defaults
+Overall,name_4527232M_69c767ed,200000,0.501839,0.003678,higher values -> more defaults
+Overall,credamount_770A,195965,0.498200,0.003601,higher values -> fewer defaults
+Overall,housingtype_772M_97bb64e3,200000,0.501790,0.003580,higher values -> more defaults
+Overall,name_4527232M_ab4fffa8,200000,0.501746,0.003492,higher values -> more defaults
+Overall,has_tax_record,200000,0.501682,0.003363,higher values -> more defaults
+Overall,name_4527232M_28a6bf7a,200000,0.501488,0.002976,higher values -> more defaults
+Overall,pmts_overdue_1140A_allpayments_median,128072,0.498607,0.002787,higher values -> fewer defaults
+Overall,status_219L_a2839ee4,200000,0.498762,0.002476,higher values -> fewer defaults
+Overall,name_4527232M_43036c45,200000,0.498852,0.002295,higher values -> fewer defaults
+Overall,pmts_overdue_1140A_allpayments_mean,128072,0.499095,0.001809,higher values -> fewer defaults
+Overall,housingtype_772M_c93f8128,200000,0.499162,0.001677,higher values -> fewer defaults
+Overall,applprev_rowcount,200000,0.499183,0.001634,higher values -> fewer defaults
+Overall,annuity_780A,179997,0.500530,0.001060,higher values -> more defaults
+Overall,payments_per_contract,140053,0.499479,0.001042,higher values -> fewer defaults
+Overall,has_prior_application,200000,0.500427,0.000853,higher values -> more defaults
+Overall,name_4527232M_5fd4af02,200000,0.500315,0.000630,higher values -> more defaults
+Overall,person_rowcount,200000,0.500267,0.000535,higher values -> more defaults
+Overall,has_second_person,200000,0.500267,0.000535,higher values -> more defaults
+Overall,name_4527232M_22eca1b4,200000,0.499801,0.000397,higher values -> fewer defaults
+Overall,housingtype_772M_2339333a,200000,0.499833,0.000334,higher values -> fewer defaults
+Overall,pmts_overdue_1140A_contractmax_max,128072,0.500142,0.000283,higher values -> more defaults
+Overall,name_4527232M_e30629fa,200000,0.499964,0.000072,higher values -> fewer defaults
+Overall,name_4527232M_e4848b42,200000,0.499997,0.000005,higher values -> fewer defaults
+Overall,name_4527232M_4086b8cf,200000,0.500000,0.000000,higher values -> fewer defaults
+Thin-file,amount_4527230A_mean,44887,0.411221,0.177559,higher values -> fewer defaults
+Thin-file,amount_4527230A_median,44887,0.412636,0.174728,higher values -> fewer defaults
+Thin-file,amount_4527230A_max,44887,0.425606,0.148789,higher values -> fewer defaults
+Thin-file,days_employed_700P,51010,0.426071,0.147859,higher values -> fewer defaults
+Thin-file,empl_employedtotal_800L_mean,52828,0.432495,0.135011,higher values -> fewer defaults
+Thin-file,empl_employedtotal_800L_median,52828,0.432495,0.135011,higher values -> fewer defaults
+Thin-file,employment_share_of_life,51010,0.436480,0.127040,higher values -> fewer defaults
+Thin-file,empl_employedtotal_800L_max,52828,0.437671,0.124659,higher values -> fewer defaults
+Thin-file,mainoccupationinc_384A_mean,58380,0.441864,0.116271,higher values -> fewer defaults
+Thin-file,mainoccupationinc_384A_median,58380,0.441864,0.116271,higher values -> fewer defaults
+Thin-file,mainoccupationinc_384A,56948,0.445717,0.108566,higher values -> fewer defaults
+Thin-file,mainoccupationinc_384A_max,58380,0.447378,0.105244,higher values -> fewer defaults
+Thin-file,credamount_590A_mean,48010,0.447981,0.104037,higher values -> fewer defaults
+Thin-file,credamount_590A_median,48010,0.448503,0.102994,higher values -> fewer defaults
+Thin-file,credamount_590A_max,48010,0.458087,0.083827,higher values -> fewer defaults
+Thin-file,income_total,59947,0.461218,0.077565,higher values -> fewer defaults
+Thin-file,credit_to_income,55830,0.536752,0.073503,higher values -> more defaults
+Thin-file,annuity_to_income,51209,0.535273,0.070546,higher values -> more defaults
+Thin-file,requested_vs_prior_application,47071,0.534417,0.068833,higher values -> more defaults
+Thin-file,months_since_last_application,46663,0.473369,0.053262,higher values -> fewer defaults
+Thin-file,income_vs_tax,42630,0.509327,0.018654,higher values -> more defaults
+Thin-file,age_in_years,59947,0.492046,0.015908,higher values -> fewer defaults
+Thin-file,name_4527232M_69c767ed,59947,0.503058,0.006116,higher values -> more defaults
+Thin-file,name_4527232M_2e8792b8,59947,0.503033,0.006066,higher values -> more defaults
+Thin-file,person_rowcount,59947,0.502429,0.004859,higher values -> more defaults
+Thin-file,has_second_person,59947,0.502429,0.004859,higher values -> more defaults
+Thin-file,housingtype_772M_97bb64e3,59947,0.502355,0.004709,higher values -> more defaults
+Thin-file,external_coverage,59947,0.502320,0.004639,higher values -> more defaults
+Thin-file,annuity_780A,53914,0.497693,0.004614,higher values -> fewer defaults
+Thin-file,has_prior_application,59947,0.502141,0.004282,higher values -> more defaults
+Thin-file,name_4527232M_ab4fffa8,59947,0.502127,0.004254,higher values -> more defaults
+Thin-file,n_unknown,59947,0.498033,0.003933,higher values -> fewer defaults
+Thin-file,housingtype_772M_2339333a,59947,0.501882,0.003764,higher values -> more defaults
+Thin-file,name_4527232M_43036c45,59947,0.498189,0.003621,higher values -> fewer defaults
+Thin-file,name_4527232M_e4848b42,59947,0.498239,0.003523,higher values -> fewer defaults
+Thin-file,housingtype_772M_c93f8128,59947,0.498377,0.003246,higher values -> fewer defaults
+Thin-file,name_4527232M_5fd4af02,59947,0.498681,0.002639,higher values -> fewer defaults
+Thin-file,has_tax_record,59947,0.501051,0.002103,higher values -> more defaults
+Thin-file,name_4527232M_e30629fa,59947,0.498956,0.002088,higher values -> fewer defaults
+Thin-file,name_4527232M_28a6bf7a,59947,0.499050,0.001899,higher values -> fewer defaults
+Thin-file,status_219L_fa96ae9d,59947,0.500943,0.001887,higher values -> more defaults
+Thin-file,housingtype_772M_39303e4a,59947,0.500891,0.001783,higher values -> more defaults
+Thin-file,name_4527232M_4086b8cf,59947,0.500780,0.001560,higher values -> more defaults
+Thin-file,status_219L_a2839ee4,59947,0.500747,0.001495,higher values -> more defaults
+Thin-file,tax_rowcount,59947,0.500725,0.001450,higher values -> more defaults
+Thin-file,name_4527232M_22eca1b4,59947,0.499589,0.000821,higher values -> fewer defaults
+Thin-file,status_219L_dedbd039,59947,0.499642,0.000715,higher values -> fewer defaults
+Thin-file,credit_to_annuity,52877,0.500325,0.000649,higher values -> more defaults
+Thin-file,housingtype_772M_a19ac633,59947,0.499856,0.000289,higher values -> fewer defaults
+Thin-file,credamount_770A,58778,0.500108,0.000215,higher values -> more defaults
+Thin-file,total_external_records,59947,0.500066,0.000132,higher values -> more defaults
+Thin-file,applprev_rowcount,59947,0.500005,0.000010,higher values -> more defaults
+Thin-file,riskassesment_940T,0,,,not available
+Thin-file,numberofqueries_146L,0,,,not available
+Thin-file,bureau_rowcount,59947,,,not available
+Thin-file,credamount_770A_mean,0,,,not available
+Thin-file,credamount_770A_max,0,,,not available
+Thin-file,credamount_770A_median,0,,,not available
+Thin-file,overdueamountmax_950A_mean,0,,,not available
+Thin-file,overdueamountmax_950A_max,0,,,not available
+Thin-file,overdueamountmax_950A_median,0,,,not available
+Thin-file,pmts_dpdvalue_108P_mean,0,,,not available
+Thin-file,pmts_dpdvalue_108P_max,0,,,not available
+Thin-file,pmts_dpdvalue_108P_median,0,,,not available
+Thin-file,payment_rowcount_sum,59947,,,not available
+Thin-file,pmts_overdue_1140A_contractmax_max,0,,,not available
+Thin-file,pmts_overdue_1140A_allpayments_mean,0,,,not available
+Thin-file,pmts_overdue_1140A_allpayments_median,0,,,not available
+Thin-file,classificationofcontr_13M_01851564,59947,,,not available
+Thin-file,classificationofcontr_13M_54ddc605,59947,,,not available
+Thin-file,classificationofcontr_13M_6f5666c7,59947,,,not available
+Thin-file,classificationofcontr_13M_ba38dde4,59947,,,not available
+Thin-file,classificationofcontr_13M_d8bf6dd7,59947,,,not available
+Thin-file,classificationofcontr_13M_fe64f125,59947,,,not available
+Thin-file,is_thin_file,59947,,,not available
+Thin-file,requested_vs_past_credit,0,,,not available
+Thin-file,overdue_to_credit,0,,,not available
+Thin-file,payments_per_contract,0,,,not available
+Thin-file,dpd_bucket,0,,,not available
