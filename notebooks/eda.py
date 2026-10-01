@@ -97,6 +97,12 @@ DISPLAY_NAMES = {
     "n_unknown": "Number of unknown values",
     "is_thin_file": "Thin-file indicator",
     "external_coverage": "Available data sources",
+    "classificationofcontr_13M_54ddc605": "Bureau contract class count (54ddc605)",
+    "classificationofcontr_13M_fe64f125": "Bureau contract class count (fe64f125)",
+    "classificationofcontr_13M_6f5666c7": "Bureau contract class count (6f5666c7)",
+    "classificationofcontr_13M_d8bf6dd7": "Bureau contract class count (d8bf6dd7)",
+    "classificationofcontr_13M_01851564": "Bureau contract class count (01851564)",
+    "classificationofcontr_13M_ba38dde4": "Bureau contract class count (ba38dde4)",
 }
 
 
@@ -139,7 +145,7 @@ def numeric_signal(data: pd.DataFrame) -> pd.DataFrame:
         for column in sample.select_dtypes(include=["number", "bool"]).columns
         if column not in excluded
         and not column.startswith(
-            ("status_219L_", "housingtype_772M_", "name_4527232M_", "classificationofcontr_13M_")
+            ("status_219L_", "housingtype_772M_", "name_4527232M_")
         )
     ]
     groups = {

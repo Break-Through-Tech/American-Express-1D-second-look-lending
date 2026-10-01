@@ -113,17 +113,23 @@ should not be used as a feature on its own.
 
 The separation score is `2 × |AUC - 0.5|`. A score of 0 means the feature has no ability to rank defaults
 by itself; a score of 1 means perfect separation. Mean, median, and maximum versions of the same concept
-are grouped so the chart does not repeat nearly identical signals.
+are grouped so the chart does not repeat nearly identical signals. Bureau contract category count columns
+(`classificationofcontr_13M_*`) are treated as one family; the chart shows only the strongest member.
 
-Overall, the strongest numeric signals are risk assessment, days past due, past bureau credit, overdue
-amounts, and credit-query activity. These depend heavily on bureau history.
+For established borrowers, the strongest numeric signals are risk assessment, days past due, bureau
+contract category counts, past bureau credit, overdue amounts, and credit-query activity. The highest-
+signal category count feature (`classificationofcontr_13M_54ddc605`) reaches separation 0.41 — each
+additional contract of that class is associated with a monotonically higher default rate (9.4% at count 0
+rising to 64.6% at count 8). All bureau signals depend on bureau history and are unavailable for
+thin-file applicants.
 
 For thin-file applicants, the strongest numeric signals shift to tax-registry amounts, employment
 duration, employment history, household income, prior-application amounts, and credit-to-income. Their
 individual separation is weaker, which shows why thin-file predictions are more difficult.
 
-The direction written beside each feature matters. For example, higher days past due is associated with
-more defaults, while higher tax-registry amounts and longer employment are associated with fewer defaults.
+The direction written beside each feature matters. For example, higher days past due and higher bureau
+contract category counts are associated with more defaults, while higher tax-registry amounts and longer
+employment are associated with fewer defaults.
 
 **Note:** Figure 6 covers numeric features only. Education — a categorical feature — is the strongest
 thin-file signal overall (see Figure 8).
@@ -204,8 +210,10 @@ default rate.
 1. Thin-file applicants default more often than established applicants, and their default rate changes
    substantially across the training period (31% in early weeks → 20% late; established stays flat at
    16.4% throughout).
-2. Traditional bureau measures provide strong risk separation for established applicants but are absent
-   for every thin-file applicant.
+2. Traditional bureau measures — including risk assessment score, days past due, past credit, overdue
+   amounts, and bureau contract category counts (`classificationofcontr_13M_54ddc605` reaches separation
+   0.41) — provide strong risk separation for established applicants but are absent for every thin-file
+   applicant.
 3. **Education is the single strongest thin-file predictor** (separation 0.41), more than 2× stronger
    than the next-best feature. It should be used as an ordinal or target-encoded feature, not one-hot.
 4. Tax-registry amounts, employment duration, employment history, and household income are the strongest
