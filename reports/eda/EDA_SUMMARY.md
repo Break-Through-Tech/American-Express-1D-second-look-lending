@@ -82,15 +82,32 @@ categories, so marital status appears much less useful.
 Credit-file description is associated with default overall, but every thin-file applicant has
 `MISSING`. It cannot separate applicants within the thin-file segment.
 
-| Available Data Sources | Applicants | Default Rate |
+**Figure 5b: Coverage and Simpson's paradox.** The overall table below looks like default falls as
+coverage increases, but this is a composition effect, not a real signal.
+
+| Available Data Sources | Applicants | Overall Default Rate |
 | ---: | ---: | ---: |
 | 0 | 15,007 | 25.7% |
 | 1 | 140,274 | 23.3% |
 | 2 | 424,499 | 20.3% |
 | 3 | 420,220 | 16.4% |
 
-Default falls as bureau, prior-application, and tax-registry coverage increases. Data-source coverage is
-therefore informative and should remain available to later models.
+When the same data is broken out by segment, the signal disappears entirely:
+
+| Coverage | Thin-file default | Established default |
+| ---: | ---: | ---: |
+| 0 | 25.7% | — |
+| 1 | 25.6% | 16.4% |
+| 2 | 25.6% | 16.3% |
+| 3 | — | 16.4% |
+
+Within thin-file, default is flat at 25.6–25.7% regardless of whether the applicant has one or two
+non-bureau sources. Within established, default is flat at 16.3–16.4% across all three coverage levels.
+The overall downward slope exists only because coverage 0 is entirely thin-file (~25.7% default) and
+coverage 3 is entirely established (~16.4% default) — the average moves as the segment mix changes, not
+because coverage itself predicts risk. Having tax-registry or prior-application records adds no
+incremental information once the thin-file / established distinction is known. Data-source coverage
+should not be used as a feature on its own.
 
 ## Figure 6: Strongest Single-Feature Signals (Numeric Features)
 
@@ -194,8 +211,10 @@ default rate.
 4. Tax-registry amounts, employment duration, employment history, and household income are the strongest
    numeric thin-file signals. Combined, they give the model something to work with without bureau data.
 5. Marital status, age, and housing type carry no meaningful signal and can be deprioritized.
-6. Data-source coverage appears informative overall, but this is a Simpson's paradox effect: within each
-   segment (thin-file vs. established), default rate does not change with coverage level.
+6. Data-source coverage looks informative in the aggregate (25.7% → 16.4% as coverage rises 0→3), but
+   this is Simpson's paradox: within thin-file default is flat at ~25.6%, within established flat at
+   ~16.4%. The slope exists because segment composition changes with coverage, not because coverage
+   predicts risk. Coverage should not be used as a standalone feature.
 7. A time-based validation split (e.g., train on weeks 0–75, validate on 76–91) is required; a random
    split would leak the thin-file trend and produce overoptimistic estimates of future performance.
 
