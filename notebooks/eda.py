@@ -1,8 +1,11 @@
 """
 Task 5: Exploratory data analysis.
 
-Run this after features.py. It reads the complete training feature dataset and writes seven figures
-to reports/eda/figures. The findings from those figures are documented in reports/eda/EDA_SUMMARY.md.
+Run this after features.py. It reads the complete training feature dataset and writes eight figures
+to reports/eda/figures. Figures 1-7 use the full 1,000,000-row training set; figure 8 ranks thin-file
+signal strength across all feature types (including education encoded as an ordinal) on the full set of
+thin-file applicants and prints a validation check for the education signal. The findings from those
+figures are documented in reports/eda/EDA_SUMMARY.md.
 """
 
 from pathlib import Path
@@ -15,6 +18,7 @@ from sklearn.metrics import roc_auc_score
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -24,10 +28,16 @@ FIGURES_DIR = OUTPUT_DIR / "figures"
 
 TARGET = "target"
 THIN_FILE = "is_thin_file"
+EDUCATION = "education_927M"
 MISSING_VALUE = -1
 SAMPLE_SIZE = 200_000
 RANDOM_STATE = 42
 BREAK_EVEN_RATE = 0.20
+# Figure 8: how many distinct numeric feature families to show alongside the education ordinal.
+THIN_FILE_NUMERIC_COUNT = 14
+# Validation check for the education signal (printed, not plotted).
+TIME_SPLIT_WEEK = 75          # train: weeks 0-75, validation: weeks 76-91
+PERMUTATION_SHUFFLES = 1_000  # label shuffles for the permutation test
 
 COLORS = {"overall": "#345995", "established": "#2A9D8F", "thin": "#E76F51"}
 CATEGORICAL_FEATURES = ["education_927M", "maritalstatus_703M", "description_5085714M"]
@@ -93,6 +103,12 @@ DISPLAY_NAMES = {
     "mainoccupationinc_384A_median": "Median household occupation income",
     "employment_share_of_life": "Employment share of life",
     "requested_vs_past_credit": "Requested-to-past-credit ratio",
+    "requested_vs_prior_application": "Requested-to-prior-app ratio",
+    "annuity_780A": "Loan annuity",
+    "annuity_to_income": "Annuity-to-income ratio",
+    "credit_to_annuity": "Credit-to-annuity ratio",
+    "income_vs_tax": "Income-to-tax ratio",
+    "months_since_last_application": "Months since last application",
     "income_total": "Total household income",
     "n_unknown": "Number of unknown values",
     "is_thin_file": "Thin-file indicator",
@@ -136,41 +152,54 @@ def signal_family(feature: str) -> str:
     return feature
 
 
-def numeric_signal(data: pd.DataFrame) -> pd.DataFrame:
-    """Rank numeric features using univariate AUC overall and within each segment."""
-    sample = data.sample(min(SAMPLE_SIZE, len(data)), random_state=RANDOM_STATE)
+def numeric_feature_columns(frame: pd.DataFrame) -> list[str]:
+    """Return numeric/boolean feature columns, excluding ids and one-hot indicator families."""
     excluded = {"case_id", "MONTH", "WEEK_NUM", TARGET}
-    features = [
+    return [
         column
-        for column in sample.select_dtypes(include=["number", "bool"]).columns
+        for column in frame.select_dtypes(include=["number", "bool"]).columns
         if column not in excluded
         and not column.startswith(
             ("status_219L_", "housingtype_772M_", "name_4527232M_")
         )
     ]
+
+
+def score_features(frame: pd.DataFrame, features: list[str], segment: str) -> list[dict]:
+    """Univariate separation (2 x |AUC - 0.5|) for each feature within one applicant group."""
+    rows = []
+    for feature in features:
+        values = clean_numeric(frame[feature])
+        valid = values.notna()
+        auc = np.nan
+        if valid.sum() >= 500 and values.loc[valid].nunique() > 1 and frame.loc[
+            valid, TARGET
+        ].nunique() > 1:
+            auc = roc_auc_score(frame.loc[valid, TARGET], values.loc[valid])
+        rows.append(
+            {
+                "segment": segment,
+                "feature": feature,
+                "display_name": display_name(feature),
+                "auc": auc,
+                "signal_strength": 2 * abs(auc - 0.5) if pd.notna(auc) else np.nan,
+            }
+        )
+    return rows
+
+
+def numeric_signal(data: pd.DataFrame) -> pd.DataFrame:
+    """Rank numeric features using univariate AUC overall and within each segment."""
+    sample = data.sample(min(SAMPLE_SIZE, len(data)), random_state=RANDOM_STATE)
+    features = numeric_feature_columns(sample)
     groups = {
         "Overall": sample,
         "Established": sample[sample[THIN_FILE].eq(0)],
         "Thin-file": sample[sample[THIN_FILE].eq(1)],
     }
     rows = []
-
     for segment, group in groups.items():
-        for feature in features:
-            values = clean_numeric(group[feature])
-            valid = values.notna()
-            auc = np.nan
-            if valid.sum() >= 500 and values.loc[valid].nunique() > 1:
-                auc = roc_auc_score(group.loc[valid, TARGET], values.loc[valid])
-            rows.append(
-                {
-                    "segment": segment,
-                    "feature": feature,
-                    "display_name": display_name(feature),
-                    "auc": auc,
-                    "signal_strength": 2 * abs(auc - 0.5) if pd.notna(auc) else np.nan,
-                }
-            )
+        rows.extend(score_features(group, features, segment))
     return pd.DataFrame(rows)
 
 
@@ -183,6 +212,101 @@ def diverse_signal(signal: pd.DataFrame, segment: str, count: int) -> pd.DataFra
         .drop_duplicates("family")
         .head(count)
     )
+
+
+def education_ordinal_values(
+    frame: pd.DataFrame, order: list[str] | None = None
+) -> tuple[pd.Series, list[str]]:
+    """Encode anonymized education as an ordinal (0..k-1) ordered by default rate.
+
+    Figure 6 covers numeric features only; education is categorical. Ordering the categories by
+    default rate turns them into a single ordinal feature that can be scored on the same scale.
+    An explicit `order` can be supplied so an order learned on one split is applied cold to another.
+    """
+    if order is None:
+        order = (
+            frame.groupby(EDUCATION, observed=True)[TARGET]
+            .mean()
+            .sort_values()
+            .index.tolist()
+        )
+    mapping = {category: rank for rank, category in enumerate(order)}
+    return frame[EDUCATION].map(mapping).astype(float), order
+
+
+def thin_file_all_signal(data: pd.DataFrame) -> pd.DataFrame:
+    """Separation for every numeric feature plus the education ordinal, on all thin-file applicants.
+
+    Unlike figure 6 (which samples), this uses the full thin-file population because education is the
+    headline thin-file finding and we want the ranking computed on every available applicant.
+    """
+    thin = data[data[THIN_FILE].eq(1)]
+    features = numeric_feature_columns(thin)
+    signal = pd.DataFrame(score_features(thin, features, "Thin-file"))
+    signal["kind"] = "numeric"
+
+    values, _ = education_ordinal_values(thin)
+    valid = values.notna()
+    education_auc = roc_auc_score(thin.loc[valid, TARGET], values.loc[valid])
+    education_row = {
+        "segment": "Thin-file",
+        "feature": EDUCATION,
+        "display_name": "Education group (A->E)",
+        "auc": education_auc,
+        "signal_strength": 2 * abs(education_auc - 0.5),
+        "kind": "education",
+    }
+    return pd.concat([signal, pd.DataFrame([education_row])], ignore_index=True)
+
+
+def thin_file_signal_ranking(all_signal: pd.DataFrame) -> pd.DataFrame:
+    """Keep the education ordinal plus the strongest distinct numeric families for the chart."""
+    numeric = all_signal[all_signal["kind"] == "numeric"].dropna(subset=["signal_strength"]).copy()
+    numeric["family"] = numeric["feature"].map(signal_family)
+    numeric = (
+        numeric.sort_values("signal_strength", ascending=False)
+        .drop_duplicates("family")
+        .head(THIN_FILE_NUMERIC_COUNT)
+    )
+    education = all_signal[all_signal["kind"] == "education"]
+    return pd.concat([education, numeric], ignore_index=True)
+
+
+def validate_education_signal(data: pd.DataFrame) -> dict:
+    """Confirm education's signal is real, not an artifact of defining the ordinal on the same data.
+
+    Runs two checks and returns their results for printing:
+      1. Time-based holdout: derive the ordinal order from train-thin only (weeks 0-TIME_SPLIT_WEEK),
+         then apply it cold to the later validation weeks. A stable separation means no leakage.
+      2. Permutation test: shuffle the education labels PERMUTATION_SHUFFLES times and recompute AUC.
+         A real signal sits far above anything the shuffles produce.
+    """
+    thin = data[data[THIN_FILE].eq(1)]
+    full_values, _ = education_ordinal_values(thin)
+    observed_auc = roc_auc_score(thin[TARGET], full_values)
+
+    train = thin[thin["WEEK_NUM"] <= TIME_SPLIT_WEEK]
+    validation = thin[thin["WEEK_NUM"] > TIME_SPLIT_WEEK]
+    train_values, order = education_ordinal_values(train)
+    validation_values, _ = education_ordinal_values(validation, order)
+    train_sep = 2 * abs(roc_auc_score(train[TARGET], train_values) - 0.5)
+    validation_sep = 2 * abs(roc_auc_score(validation[TARGET], validation_values) - 0.5)
+
+    rng = np.random.default_rng(RANDOM_STATE)
+    targets = thin[TARGET].to_numpy()
+    encoded = full_values.to_numpy()
+    null_aucs = np.array(
+        [roc_auc_score(targets, rng.permutation(encoded)) for _ in range(PERMUTATION_SHUFFLES)]
+    )
+    exceed = int((null_aucs >= observed_auc).sum())
+    return {
+        "observed_auc": observed_auc,
+        "observed_separation": 2 * abs(observed_auc - 0.5),
+        "train_separation": train_sep,
+        "validation_separation": validation_sep,
+        "null_max_auc": float(null_aucs.max()),
+        "p_value": (exceed + 1) / (PERMUTATION_SHUFFLES + 1),
+    }
 
 
 def category_aliases(data: pd.DataFrame) -> pd.DataFrame:
@@ -289,6 +413,25 @@ def feature_group_default_rates(data: pd.DataFrame) -> pd.DataFrame:
             summary.insert(0, "segment", segment)
             rows.append(summary)
     return pd.concat(rows, ignore_index=True)
+
+
+def coverage_by_segment(data: pd.DataFrame) -> pd.DataFrame:
+    """Default rate by data-source coverage, overall and within each segment (for figure 5b)."""
+    groups = {
+        "Overall": data,
+        "Thin-file": data[data[THIN_FILE].eq(1)],
+        "Established": data[data[THIN_FILE].eq(0)],
+    }
+    tables = []
+    for segment, group in groups.items():
+        rates = (
+            group.groupby("external_coverage", observed=True)[TARGET]
+            .agg(applicants="size", default_rate="mean")
+            .reset_index()
+        )
+        rates.insert(0, "segment", segment)
+        tables.append(rates)
+    return pd.concat(tables, ignore_index=True)
 
 
 def save_figure(figure: plt.Figure, filename: str) -> None:
@@ -434,6 +577,41 @@ def plot_education_and_coverage(rates: pd.DataFrame, coverage: pd.DataFrame) -> 
     save_figure(figure, "05_education_and_coverage.png")
 
 
+def plot_coverage_simpsons(coverage_segments: pd.DataFrame) -> None:
+    figure, axis = plt.subplots(figsize=(11, 6.5))
+    styles = {
+        "Overall": {"color": "gray", "linestyle": "--", "label": "Overall (misleading aggregate)"},
+        "Thin-file": {"color": COLORS["thin"], "linestyle": "-", "label": "Thin-file applicants"},
+        "Established": {"color": COLORS["established"], "linestyle": "-",
+                        "label": "Established applicants"},
+    }
+    for segment, style in styles.items():
+        line = coverage_segments[coverage_segments["segment"] == segment].sort_values(
+            "external_coverage"
+        )
+        axis.plot(line["external_coverage"], line["default_rate"], marker="o", linewidth=2.2,
+                  markersize=8, **style)
+        if segment != "Overall":
+            last = line.iloc[-1]
+            axis.annotate(
+                f"  {last['default_rate']:.1%} {segment.split('-')[0].lower()}",
+                xy=(last["external_coverage"], last["default_rate"]),
+                va="center", fontsize=11, fontweight="bold", color=style["color"],
+            )
+    axis.set(
+        title="Simpson's paradox: coverage looks informative overall, but isn't\n"
+        "Within each segment the default rate is flat as coverage increases",
+        xlabel="Available data sources  (0 = none  .  1 = one of bureau / prior apps / tax  "
+        ".  3 = all three)",
+        ylabel="Default rate",
+        xticks=[0, 1, 2, 3],
+        xlim=(-0.3, 3.6),
+    )
+    axis.yaxis.set_major_formatter(lambda value, _: f"{value:.0%}")
+    axis.legend(frameon=False, loc="upper right")
+    save_figure(figure, "05b_coverage_simpsons_paradox.png")
+
+
 def plot_numeric_signal(signal: pd.DataFrame) -> None:
     figure, axes = plt.subplots(1, 2, figsize=(14, 6.5))
     for axis, segment, color in [
@@ -491,6 +669,53 @@ def plot_feature_group_rates(grouped_rates: pd.DataFrame, reference_rates: dict[
     save_figure(figure, "07_binned_default_rates.png")
 
 
+def plot_thin_file_signal(ranking: pd.DataFrame) -> None:
+    ranking = ranking.sort_values("signal_strength").reset_index(drop=True)
+    labels = ranking["display_name"] + np.where(
+        ranking["auc"] >= 0.5, "\n(higher = more risk)", "\n(higher = less risk)"
+    )
+    colors = np.where(
+        ranking["kind"].eq("education"), COLORS["established"], COLORS["overall"]
+    )
+    figure, axis = plt.subplots(figsize=(12, 8))
+    bars = axis.barh(labels, ranking["signal_strength"], color=list(colors))
+    axis.set(
+        title="Thin-file applicants: signal strength - all feature types\n"
+        "Education stands out as the strongest thin-file predictor",
+        xlabel="Single-feature separation score\n(0 = no signal, 1 = perfect)",
+        xlim=(0, max(0.5, ranking["signal_strength"].max() * 1.15)),
+    )
+    axis.bar_label(
+        bars, labels=[f"{value:.2f}" for value in ranking["signal_strength"]],
+        padding=3, fontsize=9,
+    )
+
+    education = ranking[ranking["kind"].eq("education")].iloc[0]
+    best_numeric = ranking.loc[ranking["kind"].eq("numeric"), "signal_strength"].max()
+    education_position = int(ranking.index[ranking["kind"].eq("education")][0])
+    ratio = education["signal_strength"] / best_numeric if best_numeric else float("nan")
+    axis.annotate(
+        f"Education: {education['signal_strength']:.2f}\n"
+        f"({ratio:.1f}x stronger than\nnext-best feature: {best_numeric:.2f})",
+        xy=(education["signal_strength"], education_position),
+        xytext=(education["signal_strength"] - 0.16, education_position - 3.4),
+        fontsize=10,
+        fontweight="bold",
+        color=COLORS["established"],
+        bbox={"boxstyle": "round", "facecolor": "white", "edgecolor": COLORS["established"]},
+        arrowprops={"arrowstyle": "->", "color": COLORS["established"]},
+    )
+    axis.legend(
+        handles=[
+            Patch(color=COLORS["established"], label="Categorical: education (ordinal)"),
+            Patch(color=COLORS["overall"], label="Numeric features"),
+        ],
+        frameon=False,
+        loc="lower right",
+    )
+    save_figure(figure, "08_thin_file_signal_complete.png")
+
+
 def main() -> None:
     if not INPUT_FILE.is_file():
         raise FileNotFoundError(f"Missing {INPUT_FILE}. Run notebooks/features.py first.")
@@ -528,11 +753,14 @@ def main() -> None:
     coverage = data.groupby("external_coverage", observed=True)[TARGET].agg(
         applicants="size", default_rate="mean"
     ).reset_index()
+    coverage_segments = coverage_by_segment(data)
     grouped_rates = feature_group_default_rates(data)
     reference_rates = {
         "Overall": data[TARGET].mean(),
         "Thin-file": segments.set_index("segment").loc["Thin-file", "default_rate"],
     }
+    thin_file_signal = thin_file_all_signal(data)
+    thin_file_ranking = thin_file_signal_ranking(thin_file_signal)
 
     print("Creating figures...")
     plot_target_and_segments(data, segments)
@@ -540,10 +768,27 @@ def main() -> None:
     plot_feature_availability(availability)
     plot_numeric_distributions(data)
     plot_education_and_coverage(rates, coverage)
+    plot_coverage_simpsons(coverage_segments)
     plot_numeric_signal(signal)
     plot_feature_group_rates(grouped_rates, reference_rates)
+    plot_thin_file_signal(thin_file_ranking)
 
-    expected = [OUTPUT_DIR / "EDA_SUMMARY.md"] + [
+    print("Validating the education signal (time-based holdout + permutation test)...")
+    validation = validate_education_signal(data)
+    print(
+        f"  Education separation: {validation['observed_separation']:.3f} "
+        f"(AUC {validation['observed_auc']:.3f}) on all thin-file applicants.\n"
+        f"  Time-based holdout: train {validation['train_separation']:.3f} "
+        f"-> validation {validation['validation_separation']:.3f} "
+        "(order learned on weeks 0-75, applied cold to weeks 76-91).\n"
+        f"  Permutation test ({PERMUTATION_SHUFFLES} shuffles): null max AUC "
+        f"{validation['null_max_auc']:.3f}, p = {validation['p_value']:.4f}."
+    )
+
+    expected = [
+        OUTPUT_DIR / "EDA_SUMMARY.md",
+        FIGURES_DIR / "05b_coverage_simpsons_paradox.png",
+    ] + [
         FIGURES_DIR / f"{number:02d}_{name}.png"
         for number, name in [
             (1, "target_and_segments"),
@@ -553,6 +798,7 @@ def main() -> None:
             (5, "education_and_coverage"),
             (6, "numeric_feature_signal"),
             (7, "binned_default_rates"),
+            (8, "thin_file_signal_complete"),
         ]
     ]
     if any(not path.is_file() or path.stat().st_size == 0 for path in expected):
