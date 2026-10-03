@@ -1,0 +1,230 @@
+# Task 5 EDA Findings
+
+## Key Numbers
+
+- 1,000,000 applications across 92 training weeks.
+- 191,752 defaults, giving an overall default rate of 19.2%.
+- 299,821 thin-file applicants, representing 30.0% of all applications.
+- Thin-file default rate: 25.6%.
+- Established-applicant default rate: 16.4%.
+- No duplicate case IDs, constant columns, or true NaN values were found. Unknown values are stored as
+  `-1` for numeric fields and `MISSING` for categorical fields.
+
+## Figure 1: Applicant Mix and Default Rate
+
+Thin-file applicants have a default rate 9.2 percentage points higher than established applicants.
+Because they are almost one-third of the dataset, overall performance could hide poor results for the
+population this project is intended to serve.
+
+The dashed 20% line shows the challenge's simple break-even default rate from the example payoff. It is
+context for the group averages, not an applicant-level approval rule.
+
+## Figure 2: Risk Changes Over Time
+
+- Thin-file default falls from 32.4% in the first 10 weeks to 19.7% in the last 10 weeks.
+- Established default stays nearly unchanged: 16.5% early and 16.3% late.
+
+Most of the improvement in the overall default rate comes from the thin-file segment changing over time.
+A random validation split would mix the early high-risk period with the later lower-risk period. A
+time-based split will provide a more realistic test of future performance.
+
+## Figure 3: Feature Availability
+
+| Feature | Established | Thin-file |
+| --- | ---: | ---: |
+| Risk assessment score | 95.0% | 0.0% |
+| Average days past due | 100.0% | 0.0% |
+| Average tax-registry amount | 75.0% | 75.0% |
+| Average prior application amount | 80.0% | 80.0% |
+| Applicant income | 95.0% | 95.0% |
+| Employment duration | 84.9% | 85.0% |
+| Credit-to-income ratio | 93.1% | 93.2% |
+| Education category | 100.0% | 100.0% |
+
+Bureau risk and payment-history fields are unavailable for every thin-file applicant. Income,
+employment, affordability, tax-registry, prior-application, and education fields remain available at
+almost identical rates in both segments. These are the most practical inputs for second-look decisions.
+
+## Figure 4: Numeric Distributions
+
+The red dashed line is the median. The histograms display the 1st through 99th percentile range so a few
+extreme values do not compress the useful part of each chart. No observations are removed from the data.
+
+| Feature | Median | 1st percentile | 99th percentile | Skewness |
+| --- | ---: | ---: | ---: | ---: |
+| Applicant income | 22,021.00 | 7,516.00 | 64,417.56 | 1.59 |
+| Requested credit | 14,760.00 | 4,610.00 | 47,330.00 | 1.75 |
+| Credit-to-income ratio | 0.67 | 0.14 | 3.26 | 2.76 |
+| Age (years) | 46.28 | 22.28 | 70.38 | 0.00 |
+| Average days past due | 8.90 | 0.00 | 28.18 | 0.75 |
+
+Income, requested credit, credit-to-income, and days past due are right-skewed. Their medians are more
+representative than their means. Age is nearly symmetric. The long upper tail in credit-to-income may
+contain useful risk information and should not automatically be removed as an outlier.
+
+## Figure 5: Education and Data-Source Coverage
+
+The education values are anonymized. Groups A through E are neutral aliases ordered from the lowest to
+highest observed overall default rate. They do not reveal what the original education categories mean.
+
+| Display Label | Original Code | Applicants | Overall Default | Thin-File Default |
+| --- | --- | ---: | ---: | ---: |
+| Education group A | `f937ecaa` | 141,515 | 3.9% | 7.3% |
+| Education group B | `10795bac` | 218,145 | 8.4% | 14.0% |
+| Education group C | `6def22f0` | 279,658 | 15.5% | 22.9% |
+| Education group D | `242b264b` | 218,669 | 26.6% | 34.9% |
+| Education group E | `2d4a2bc4` | 142,013 | 46.7% | 52.7% |
+
+The ordering remains strong among thin-file applicants, so education may provide useful separation when
+bureau information is unavailable. Marital-status default rates are nearly identical across all four
+categories, so marital status appears much less useful.
+
+Credit-file description is associated with default overall, but every thin-file applicant has
+`MISSING`. It cannot separate applicants within the thin-file segment.
+
+**Figure 5b: Coverage and Simpson's paradox.** The overall table below looks like default falls as
+coverage increases, but this is a composition effect, not a real signal.
+
+| Available Data Sources | Applicants | Overall Default Rate |
+| ---: | ---: | ---: |
+| 0 | 15,007 | 25.7% |
+| 1 | 140,274 | 23.3% |
+| 2 | 424,499 | 20.3% |
+| 3 | 420,220 | 16.4% |
+
+When the same data is broken out by segment, the signal disappears entirely:
+
+| Coverage | Thin-file default | Established default |
+| ---: | ---: | ---: |
+| 0 | 25.7% | — |
+| 1 | 25.6% | 16.4% |
+| 2 | 25.6% | 16.3% |
+| 3 | — | 16.4% |
+
+Within thin-file, default is flat at 25.6–25.7% regardless of whether the applicant has one or two
+non-bureau sources. Within established, default is flat at 16.3–16.4% across all three coverage levels.
+The overall downward slope exists only because coverage 0 is entirely thin-file (~25.7% default) and
+coverage 3 is entirely established (~16.4% default) — the average moves as the segment mix changes, not
+because coverage itself predicts risk. Having tax-registry or prior-application records adds no
+incremental information once the thin-file / established distinction is known. Data-source coverage
+should not be used as a feature on its own.
+
+## Figure 6: Strongest Single-Feature Signals (Numeric Features)
+
+The separation score is `2 × |AUC - 0.5|`. A score of 0 means the feature has no ability to rank defaults
+by itself; a score of 1 means perfect separation. Mean, median, and maximum versions of the same concept
+are grouped so the chart does not repeat nearly identical signals. Bureau contract category count columns
+(`classificationofcontr_13M_*`) are treated as one family; the chart shows only the strongest member.
+
+For established borrowers, the strongest numeric signals are risk assessment, days past due, bureau
+contract category counts, past bureau credit, overdue amounts, and credit-query activity. The highest-
+signal category count feature (`classificationofcontr_13M_54ddc605`) reaches separation 0.41 — each
+additional contract of that class is associated with a monotonically higher default rate (9.4% at count 0
+rising to 64.6% at count 8). All bureau signals depend on bureau history and are unavailable for
+thin-file applicants.
+
+For thin-file applicants, the strongest numeric signals shift to tax-registry amounts, employment
+duration, employment history, household income, prior-application amounts, and credit-to-income. Their
+individual separation is weaker, which shows why thin-file predictions are more difficult.
+
+The direction written beside each feature matters. For example, higher days past due and higher bureau
+contract category counts are associated with more defaults, while higher tax-registry amounts and longer
+employment are associated with fewer defaults.
+
+**Note:** Figure 6 covers numeric features only. Education — a categorical feature — is the strongest
+thin-file signal overall (see Figure 8).
+
+## Figure 8: Thin-File Signal Strength — All Feature Types
+
+Figure 6 covers only numeric features. When education is encoded as an ordinal (group A = 0 through
+group E = 4, ordered by increasing default rate), it becomes the single strongest predictor for
+thin-file applicants by a wide margin.
+
+| Rank | Feature | Separation | Direction |
+| ---: | --- | ---: | --- |
+| 1 | **Education group (A→E)** | **0.41** | higher = more risk |
+| 2 | Avg tax-registry amount | 0.17 | higher = less risk |
+| 3 | Employment duration | 0.15 | higher = less risk |
+| 4 | Employment history | 0.13 | higher = less risk |
+| 5 | Employment share of life | 0.13 | higher = less risk |
+| 6 | Household occupation income | 0.12 | higher = less risk |
+| 7 | Avg prior-application amount | 0.11 | higher = less risk |
+| 8 | Total household income | 0.08 | higher = less risk |
+| 9 | Credit-to-income ratio | 0.07 | higher = more risk |
+| 10 | Requested-to-prior-app ratio | 0.07 | higher = more risk |
+
+Education's separation (0.41) is 2.3× the next-best numeric feature (tax-registry amount, 0.17).
+This is computed on the full 299,821 thin-file training applicants; no sampling is needed.
+
+For comparison, marital status has near-zero separation across all four categories (default rates
+16.3–16.5% for established, 25.5–25.9% for thin-file). Age is approximately uniform from 21 to 72
+and has no signal (separation 0.008). Features with separation below 0.01 in both segments — including
+age, marital status, housing type, and row-count flags — carry little predictive value on their own.
+
+**Validation check.** To confirm education's signal is not an artifact of being measured on the
+same data used to define the ordinal order, the dataset was split time-based (train: weeks 0–75,
+validation: weeks 76–91). The ordinal order was derived from train-thin only, then applied cold to
+validation. Education remained #1 on the held-out set with a separation of 0.405 vs. 0.412 on
+training (−1.8%). The feature ranking was identical in both halves. A permutation test (1,000
+shuffles of education labels) confirmed the result is not by chance: observed AUC = 0.706,
+null distribution max = 0.504, p < 0.001.
+
+The implication for modeling: education should be included as an ordinal or target-encoded feature,
+not one-hot encoded (which loses the ordering), and should be a primary input in any thin-file
+submodel or second-look policy.
+
+## Figure 7: Default Rates from Lowest to Highest Feature Values
+
+For each feature, applicants with usable values are sorted from low to high and divided into ten
+approximately equal-sized groups. Group 1 contains the lowest 10% of values and group 10 contains the
+highest 10%. The dashed line in each chart shows the average default rate for that applicant segment.
+
+### Overall Applicants
+
+| Feature | Lowest-Value Group | Highest-Value Group |
+| --- | ---: | ---: |
+| Risk assessment score | 1.4% | 54.1% |
+| Average days past due | 5.3% | 40.5% |
+| Credit-to-income ratio | 15.4% | 23.4% |
+| Employment share of life | 28.4% | 13.7% |
+
+Risk assessment and days-past-due behavior show the clearest increase in risk. Credit-to-income rises
+more gradually, while longer employment relative to age is associated with lower default.
+
+### Thin-File Applicants
+
+| Feature | Lowest-Value Group | Highest-Value Group |
+| --- | ---: | ---: |
+| Average tax-registry amount | 36.0% | 16.6% |
+| Employment duration | 35.1% | 17.5% |
+| Total household income | 29.8% | 19.7% |
+| Credit-to-income ratio | 21.4% | 30.2% |
+
+The thin-file row focuses only on information that remains available without traditional bureau history.
+Higher tax-registry amounts, longer employment, and higher household income are associated with lower
+default. Credit-to-income moves in the opposite direction, with the highest-value group reaching a 30.2%
+default rate.
+
+## Main Takeaways
+
+1. Thin-file applicants default more often than established applicants, and their default rate changes
+   substantially across the training period (31% in early weeks → 20% late; established stays flat at
+   16.4% throughout).
+2. Traditional bureau measures — including risk assessment score, days past due, past credit, overdue
+   amounts, and bureau contract category counts (`classificationofcontr_13M_54ddc605` reaches separation
+   0.41) — provide strong risk separation for established applicants but are absent for every thin-file
+   applicant.
+3. **Education is the single strongest thin-file predictor** (separation 0.41), more than 2× stronger
+   than the next-best feature. It should be used as an ordinal or target-encoded feature, not one-hot.
+4. Tax-registry amounts, employment duration, employment history, and household income are the strongest
+   numeric thin-file signals. Combined, they give the model something to work with without bureau data.
+5. Marital status, age, and housing type carry no meaningful signal and can be deprioritized.
+6. Data-source coverage looks informative in the aggregate (25.7% → 16.4% as coverage rises 0→3), but
+   this is Simpson's paradox: within thin-file default is flat at ~25.6%, within established flat at
+   ~16.4%. The slope exists because segment composition changes with coverage, not because coverage
+   predicts risk. Coverage should not be used as a standalone feature.
+7. A time-based validation split (e.g., train on weeks 0–75, validate on 76–91) is required; a random
+   split would leak the thin-file trend and produce overoptimistic estimates of future performance.
+
+Figures 1–7 use the full 1,000,000-row training dataset. Figure 8 uses all 299,821 thin-file applicants.
+The validation check embedded in Figure 8 uses a time-based split: train weeks 0–75 / validation weeks 76–91.
