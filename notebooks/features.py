@@ -141,10 +141,12 @@ def add_features(df: pd.DataFrame, last_approval: pd.Series) -> pd.DataFrame:
     df["requested_vs_prior_application"] = ratio(df["credamount_770A"], df["credamount_590A_mean"])
     years_employed = unknown_to_nan(df["days_employed_700P"]) / DAYS_PER_YEAR
     df["employment_share_of_life"] = ratio(years_employed, df["age_in_years"])
+    df["personal_income_share"] = ratio(df["mainoccupationinc_384A"], df["income_total"])
 
     # past-loan behaviour. Unknown (-1) for thin-file applicants, since they have no past loans.
     df["overdue_to_credit"] = ratio(df["overdueamountmax_950A_max"], df["credamount_770A_max"])
     df["payments_per_contract"] = ratio(df["payment_rowcount_sum"], df["bureau_rowcount"])
+    df["average_overdue_ratio"] = ratio(df["overdueamountmax_950A_mean"], df["credamount_770A_mean"])
 
     worst_dpd = unknown_to_nan(df["pmts_dpdvalue_108P_max"])
     bucket = pd.cut(worst_dpd, bins=DPD_BINS, labels=[0, 1, 2, 3]).astype(float)   # NaN stays NaN
