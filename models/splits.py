@@ -9,9 +9,6 @@ Every model uses this so all models are trained, tuned and scored on the same ap
     holdout   weeks 76-91   testing with labeled data; to measure AUC, LogLoss, Brier, inclusion gap
     score     test CSV      unlabeled; predictions for final scoring / the demo
  
-    Split by time because the model is trained on past applications and used on future ones,
-    and thin-file default rates drift over time; a random split would hide that.
- 
 * how to use
     from splits import make_splits, get_features_target_segment
  
@@ -33,7 +30,7 @@ Every model uses this so all models are trained, tuned and scored on the same ap
         approved, repaid = pred_hold < threshold, y_hold == 0
         gap = approved[repaid & (seg_hold == 0)].mean() - approved[repaid & (seg_hold == 1)].mean()
  
-    is_thin_file is also in X; drop it if unwanted.
+    is_thin_file is also in X; need to drop it if unwanted.
 """
 
 from typing import Optional
