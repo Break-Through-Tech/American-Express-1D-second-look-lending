@@ -5,14 +5,13 @@ lightgbm.py
 
 import pandas as pd
 import lightgbm as lgb
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score, average_precision_score, log_loss
 
 TRAIN_PATH = "data/cleaned/train_cleaned.csv"
 TEST_PATH = "data/cleaned/test_cleaned.csv"
 TARGET = "target"
 DROP_COLS = ["case_id", "date_decision", "WEEK_NUM", "MONTH"]  # columns to drop
-VAL_SIZE = 0.2  # fraction of train that's used for validation
+TIME_SPLIT_WEEK = 75  # train on weeks 0-75, validate on weeks 76+ (92 weeks total)
 SEED = 42
 
 
@@ -43,14 +42,22 @@ def prep(train_df, test_df, target=TARGET, drop_cols=DROP_COLS):
 
 
 # ------------- data split --------------------------------
-def make_splits(X, y, val_size=VAL_SIZE, seed=SEED):
-    """Splits the data into train and validation sets."""
-    X_train, X_validation, y_train, y_validation = train_test_split(
-        X, y, test_size=val_size, stratify=y, random_state=seed
-    )
-    # bad/defaulted rate (target = 1) similar in each split
-    print(f"Train: {len(X_train)} (bad/defaulted rate {y_train.mean():.3%}) | "
-          f"Val: {len(X_validation)} (bad/defaulted rate {y_validation.mean():.3%})")
+def make_splits(X, y, week, split_week=TIME_SPLIT_WEEK):
+    """Splits by time: earlier weeks train, later weeks validate.
+
+    A random split would mix early and late weeks into both train and
+    validation, hiding any trend over time. Splitting on WEEK_NUM instead
+    mimics how the model will actually be used: trained on past
+    applications, scored on future ones.
+    """
+    train_mask = week <= split_week
+    val_mask = ~train_mask
+
+    X_train, y_train = X[train_mask], y[train_mask]
+    X_validation, y_validation = X[val_mask], y[val_mask]
+
+    print(f"Train: {len(X_train)} (weeks 0-{split_week}, bad/defaulted rate {y_train.mean():.3%}) | "
+          f"Val: {len(X_validation)} (weeks {split_week + 1}+, bad/defaulted rate {y_validation.mean():.3%})")
     return X_train, X_validation, y_train, y_validation
 
 
@@ -115,7 +122,7 @@ if __name__ == "__main__":
     test_df = pd.read_csv(TEST_PATH)
 
     X, y, X_test, y_test = prep(train_df, test_df)
-    X_train, X_validation, y_train, y_validation = make_splits(X, y)
+    X_train, X_validation, y_train, y_validation = make_splits(X, y, train_df["WEEK_NUM"])
 
     # --- baseline with default params ---
     base = train_lgbm(X_train, y_train, X_validation, y_validation, log_every=200)
