@@ -64,7 +64,7 @@ def make_splits(X, y, week, split_week=TIME_SPLIT_WEEK):
 # ------------- training --------------------------------
 DEFAULT_PARAMS = {
     "objective": "binary",
-    "metric": "auc",
+    "metric": ["auc", "binary_logloss", "average_precision"],
     "learning_rate": 0.05,
     "num_leaves": 31,
     "max_depth": -1,
