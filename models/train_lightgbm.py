@@ -1,5 +1,5 @@
 """
-lightgbm.py
+train_lightgbm.py
 
 """
 
@@ -7,11 +7,10 @@ import pandas as pd
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score, average_precision_score, log_loss
 
-TRAIN_PATH = "data/cleaned/train_cleaned.csv"
-TEST_PATH = "data/cleaned/test_cleaned.csv"
-TARGET = "target"
-DROP_COLS = ["case_id", "date_decision", "WEEK_NUM", "MONTH"]  # columns to drop
-TIME_SPLIT_WEEK = 75  # train on weeks 0-75, validate on weeks 76+ (92 weeks total)
+from splits import make_splits, get_features_target_segment
+
+TRAIN_PATH = "data/features/train_features.csv"
+TEST_PATH = "data/features/test_features.csv"
 SEED = 42
 
 
