@@ -41,6 +41,7 @@ WEEK_COL = "WEEK_NUM"
 TARGET = "target"
 SEGMENT = "is_thin_file"
 ID_COL = "case_id"
+DROP_COLS = [ID_COL, "date_decision", WEEK_COL, "MONTH"]  # columns to drop
 
 TRAIN_END_WEEK = 63   # train:   WEEK_NUM <= 63
 TUNE_END_WEEK = 75    # tune:    64-75
@@ -113,8 +114,7 @@ def summarize(splits: dict) -> pd.DataFrame:
         })
     return pd.DataFrame(rows).set_index("split")
 
-def get_features_target_segment(df: pd.DataFrame,
-                                drop_cols=(ID_COL, "date_decision", WEEK_COL, "MONTH")
+def get_features_target_segment(df: pd.DataFrame, drop_cols=DROP_COLS
                                 ) -> tuple[pd.DataFrame, Optional[pd.Series], pd.Series]:
     """Separate one split's dataframe into model inputs, labels, and fairness segments.
  
