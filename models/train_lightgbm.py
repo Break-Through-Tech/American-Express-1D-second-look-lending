@@ -1,6 +1,10 @@
 """
 train_lightgbm.py
 
+Trains a LightGBM model on the train split, early-stopping on the tune split, and evaluates on the tune split.
+
+Returns (model, prep_rules) & can reuse prep_rules with apply_prep() for holdout, score, demo.
+Holdout split but not scored here: to be used for final evaluation after tuning.
 """
 
 import pandas as pd
@@ -15,50 +19,46 @@ SEED = 42
 
 
 # -------------  prep --------------------------------
-def prep(train_df, test_df, target=TARGET, drop_cols=DROP_COLS):
-    """Prepares the data for training and testing."""
-    y_train = train_df[target].astype(int)
-    y_test = test_df[target].astype(int) if target in test_df else None
-
-    drop = [c for c in drop_cols + [target] if c in train_df.columns]
-    X_train = train_df.drop(columns=drop)
-    X_test = test_df.reindex(columns=X_train.columns)  # same columns, same order
-
-    # any leftover text columns -> pandas category
-    obj_cols = X_train.select_dtypes(include=["object", "string"]).columns
-    for c in obj_cols:
-        cats = pd.Categorical(X_train[c].dropna()).categories
-        X_train[c] = pd.Categorical(X_train[c], categories=cats)
-        X_test[c] = pd.Categorical(X_test[c], categories=cats)
-
-    # drop constant columns
-    const = [c for c in X_train.columns if X_train[c].nunique(dropna=False) <= 1]
-    X_train = X_train.drop(columns=const)
-    X_test = X_test.drop(columns=const)
-
-    print(f"Features: {X_train.shape[1]} | categorical: {len(obj_cols)} | dropped constant: {len(const)}")
-    return X_train, y_train, X_test, y_test
+def fit_prep(X_train: pd.DataFrame) -> dict:
+    """Learn prep decisions from the train split only, so every split is prepped the same way."""
+    # get category lists per text column
+    text_columns = X_train.select_dtypes(include=["object", "string"]).columns
+    categories_by_column = {col: pd.Categorical(X_train[col].dropna()).categories
+                            for col in text_columns}
+ 
+    # cols  with a single value in train not useful -> drop them
+    constant_columns = [col for col in X_train.columns if X_train[col].nunique(dropna=False) <= 1]
+ 
+    print(f"Features: {X_train.shape[1]} | categorical: {len(categories_by_column)} "
+          f"| dropped constant: {len(constant_columns)}")
+    # prep_rules = the decisions learned from train; pass to apply_prep for every split
+    return {
+        "feature_columns": list(X_train.columns),
+        "categories_by_column": categories_by_column,
+        "constant_columns": constant_columns,
+    }
 
 
-# ------------- data split --------------------------------
-def make_splits(X, y, week, split_week=TIME_SPLIT_WEEK):
-    """Splits by time: earlier weeks train, later weeks validate.
+def apply_prep(X, prep_rules: dict) -> pd.DataFrame:
+    """Apply train's prep decisions (from fit_prep) to any split: train, tune, holdout or score."""
+    # same columns in the same order as train; any column missing is filled with NaN.
+    X = X.reindex(columns=prep_rules["feature_columns"]).copy()
 
-    A random split would mix early and late weeks into both train and
-    validation, hiding any trend over time. Splitting on WEEK_NUM instead
-    mimics how the model will actually be used: trained on past
-    applications, scored on future ones.
-    """
-    train_mask = week <= split_week
-    val_mask = ~train_mask
+    # booleans: True/False -> 1/0 
+    for col in X.select_dtypes(include="bool").columns:
+        X[col] = X[col].astype(int)
 
-    X_train, y_train = X[train_mask], y[train_mask]
-    X_validation, y_validation = X[val_mask], y[val_mask]
 
-    print(f"Train: {len(X_train)} (weeks 0-{split_week}, bad/defaulted rate {y_train.mean():.3%}) | "
-          f"Val: {len(X_validation)} (weeks {split_week + 1}+, bad/defaulted rate {y_validation.mean():.3%})")
-    return X_train, X_validation, y_train, y_validation
+    # handle missing values in numeric columns: -1 -> NaN
+    numeric_columns = X.select_dtypes(include="number").columns
+    X[numeric_columns] = X[numeric_columns].mask(X[numeric_columns] == -1)
 
+    # using train's category list; categories never seen in train become NaN.
+    for col, categories in prep_rules["categories_by_column"].items():
+        X[col] = pd.Categorical(X[col], categories=categories)
+
+    # drop the columns that were constant in train
+    return X.drop(columns=prep_rules["constant_columns"])
 
 
 # ------------- training --------------------------------
@@ -80,60 +80,68 @@ DEFAULT_PARAMS = {
 }
 
 
-def train_lgbm(X_train, y_train, X_validation, y_validation, params=None,
-               num_boost_round=5000, early_stopping=100, log_every=0):
-    """Trains a LightGBM model."""
-    p = {**DEFAULT_PARAMS, **(params or {})}
+def train_lgbm(X_train, y_train, X_tune, y_tune, params=None,
+               num_boost_round=5000, early_stopping=100, log_every=200):
+    """Train LightGBM on train, early-stopping on tune."""
+    final_params = {**DEFAULT_PARAMS, **(params or {})} # merge default and user input params
 
-    dtrain = lgb.Dataset(X_train, y_train)
-    dval = lgb.Dataset(X_validation, y_validation, reference=dtrain)
+    train_data = lgb.Dataset(X_train, y_train)
+    tune_data = lgb.Dataset(X_tune, y_tune, reference=train_data)
 
-    callbacks = [lgb.early_stopping(early_stopping, verbose=False)]
-    if log_every:
-        callbacks.append(lgb.log_evaluation(log_every))
+    callbacks = [lgb.early_stopping(early_stopping, verbose=False), lgb.log_evaluation(log_every)]
 
-    model = lgb.train(p, dtrain, num_boost_round=num_boost_round,
-                      valid_sets=[dval], valid_names=["val"], callbacks=callbacks)
+    model = lgb.train(final_params, train_data, num_boost_round=num_boost_round,
+                      valid_sets=[tune_data], valid_names=["tune"], callbacks=callbacks)
     return model
 
 
 # ------------ evaluation --------------------------------
-def evaluate(model, X, y, name="val"):
-    """Evaluates a LightGBM model on a dataset."""
-    pred = model.predict(X, num_iteration=model.best_iteration)
-    auc = roc_auc_score(y, pred)
-    metrics = {
-        "split": name,
-        "auc": auc,
-        "gini": 2 * auc - 1,
-        "pr_auc": average_precision_score(y, pred),
-        "logloss": log_loss(y, pred),
-        "best_iter": model.best_iteration,
-    }
-    print({k: round(v, 4) if isinstance(v, float) else v for k, v in metrics.items()})
-    return metrics, pred
+def evaluate(model, X, y, seg, name="tune"):
+    """Metrics for one split, overall and per segment. Returns a metrics table and predictions."""
+    default_prob = model.predict(X, num_iteration=model.best_iteration)
+    segments = [("all", seg >= 0), ("established", seg == 0), ("thin-file", seg == 1)]
+    metric_rows = []
+    for segment, in_segment in segments:
+        y_segment, prob_segment = y[in_segment], default_prob[in_segment]
+        auc = roc_auc_score(y_segment, prob_segment)
+        metrics = {
+            "split": name,
+            "segment": segment,
+            "n": int(in_segment.sum()),
+            "auc": auc,
+            "gini": 2 * auc - 1,
+            "pr_auc": average_precision_score(y_segment, prob_segment),
+            "logloss": log_loss(y_segment, prob_segment),
+            "best_iter": model.best_iteration,
+        }
+        metric_rows.append(metrics)   
+
+    all_metrics = pd.DataFrame(metric_rows)
+    print(f"best_iteration: {model.best_iteration}")
+    print(all_metrics.round(4).to_string(index=False))
+
+    return all_metrics, default_prob
 
 
+# ------------ execution --------------------------------
+def run(train_path=TRAIN_PATH, test_path=TEST_PATH) -> tuple[lgb.Booster, dict]:
+    """Load, split, prep, train, evaluate on tune. Returns the model and prep_rules for reuse."""
+    train_df = pd.read_csv(train_path)
+    test_df = pd.read_csv(test_path)
+
+    splits = make_splits(train_df, test_df)
+    X_train, y_train, _ = get_features_target_segment(splits["train"])
+    X_tune, y_tune, seg_tune = get_features_target_segment(splits["tune"])
+
+    prep_rules = fit_prep(X_train) 
+    X_train = apply_prep(X_train, prep_rules)
+    X_tune = apply_prep(X_tune, prep_rules)
+
+    model = train_lgbm(X_train, y_train, X_tune, y_tune)
+    evaluate(model, X_tune, y_tune, seg_tune, "tune")
+    # model.save_model("lgbm_model.txt")
+    return model, prep_rules
 
 
 if __name__ == "__main__":
-    train_df = pd.read_csv(TRAIN_PATH)
-    test_df = pd.read_csv(TEST_PATH)
-
-    X, y, X_test, y_test = prep(train_df, test_df)
-    X_train, X_validation, y_train, y_validation = make_splits(X, y, train_df["WEEK_NUM"])
-
-    # --- baseline with default params ---
-    base = train_lgbm(X_train, y_train, X_validation, y_validation, log_every=200)
-    evaluate(base, X_validation, y_validation, "baseline val")
-
-    # feature importance
-    importance = pd.DataFrame({
-        "feature": base.feature_name(),
-        "gain": base.feature_importance("gain"),
-    }).sort_values("gain", ascending=False)
-    # importance.to_csv("lgbm_feature_importance.csv", index=False)
-    print(importance.head(20))
-
-    # base.save_model("lgbm_final.txt")  
-    # to reload model: lgb.Booster(model_file="lgbm_final.txt")
+    run()
