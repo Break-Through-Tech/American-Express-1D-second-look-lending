@@ -36,6 +36,8 @@ Every model uses this so all models are trained, tuned and scored on the same ap
     is_thin_file is also in X; drop it if unwanted.
 """
 
+from typing import Optional
+
 import pandas as pd
 
 WEEK_COL = "WEEK_NUM"
@@ -115,7 +117,8 @@ def summarize(splits: dict) -> pd.DataFrame:
     return pd.DataFrame(rows).set_index("split")
 
 def get_features_target_segment(df: pd.DataFrame,
-                                drop_cols=(ID_COL, "date_decision", WEEK_COL, "MONTH")):
+                                drop_cols=(ID_COL, "date_decision", WEEK_COL, "MONTH")
+                                ) -> tuple[pd.DataFrame, Optional[pd.Series], pd.Series]:
     """Separate one split's dataframe into model inputs, labels, and fairness segments.
  
     Returns:
