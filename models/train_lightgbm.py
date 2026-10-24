@@ -13,8 +13,8 @@ from sklearn.metrics import roc_auc_score, average_precision_score, log_loss
 
 from splits import make_splits, get_features_target_segment
 
-TRAIN_PATH = "data/features/train_features.csv"
-TEST_PATH = "data/features/test_features.csv"
+TRAIN_PATH = "data/lgbm/train_lgbm.csv"
+TEST_PATH = "data/lgbm/test_lgbm.csv"
 SEED = 42
 
 
@@ -51,9 +51,7 @@ def apply_prep(X, prep_rules: dict) -> pd.DataFrame:
 
     # handle missing values in numeric columns: -1 -> NaN
     numeric_columns = X.select_dtypes(include="number").columns
-    X[numeric_columns] = X[numeric_columns].mask(X[numeric_columns] == -1)
 
-    # using train's category list; categories never seen in train become NaN.
     for col, categories in prep_rules["categories_by_column"].items():
         X[col] = pd.Categorical(X[col], categories=categories)
 
