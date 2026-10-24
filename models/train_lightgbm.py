@@ -103,6 +103,11 @@ def evaluate(model, X, y, seg, name="tune"):
     metric_rows = []
     for segment, in_segment in segments:
         y_segment, prob_segment = y[in_segment], default_prob[in_segment]
+
+        if y_segment.nunique() < 2:
+            print(f"Skipping {segment}: n={int(in_segment.sum())}, classes={y_segment.nunique()}")
+            continue
+
         auc = roc_auc_score(y_segment, prob_segment)
         metrics = {
             "split": name,
@@ -124,23 +129,52 @@ def evaluate(model, X, y, seg, name="tune"):
 
 
 # ------------ execution --------------------------------
-def run(train_path=TRAIN_PATH, test_path=TEST_PATH) -> tuple[lgb.Booster, dict]:
-    """Load, split, prep, train, evaluate on tune. Returns the model and prep_rules for reuse."""
-    train_df = pd.read_csv(train_path)
-    test_df = pd.read_csv(test_path)
+def build_model(splits: dict, features: list, segment=None, params=None, name="model"
+                ) -> tuple[lgb.Booster, dict, pd.DataFrame]:
+    """Train one LightGBM PD model on chosen applicants and features, evaluated on tune.
 
-    splits = make_splits(train_df, test_df)
-    X_train, y_train, _ = get_features_target_segment(splits["train"])
-    X_tune, y_tune, seg_tune = get_features_target_segment(splits["tune"])
+    splits:   output of make_splits
+    features: column names the model may use
+    segment:  None = all applicants, 1 = thin-file only, 0 = established only
+    params:   overrides for DEFAULT_PARAMS
+    name:     label printed above the metrics
 
-    prep_rules = fit_prep(X_train) 
+    Returns (model, prep_rules, tune_metrics). Reuse prep_rules with apply_prep for other splits.
+    """
+    train_df, tune_df = splits["train"], splits["tune"]
+    if segment is not None:
+        train_df = train_df[train_df["is_thin_file"] == segment]
+        tune_df = tune_df[tune_df["is_thin_file"] == segment]
+
+    X_train, y_train, _ = get_features_target_segment(train_df)
+    X_tune, y_tune, seg_tune = get_features_target_segment(tune_df)
+
+    X_train = X_train[features]
+    X_tune = X_tune[features]
+
+    prep_rules = fit_prep(X_train)
     X_train = apply_prep(X_train, prep_rules)
     X_tune = apply_prep(X_tune, prep_rules)
 
-    model = train_lgbm(X_train, y_train, X_tune, y_tune)
-    evaluate(model, X_tune, y_tune, seg_tune, "tune")
+    model = train_lgbm(X_train, y_train, X_tune, y_tune, params=params)
+    print(f"\n=== {name} ===")
+    metrics, _ = evaluate(model, X_tune, y_tune, seg_tune)
     # model.save_model("lgbm_model.txt")
-    return model, prep_rules
+    return model, prep_rules, metrics
+
+
+def run(train_path=TRAIN_PATH, test_path=TEST_PATH) -> tuple[lgb.Booster, dict, pd.DataFrame]:
+    """Full-feature reference model: every feature, every applicant.
+
+    Loads and splits the data, then calls build_model. Returns (model, prep_rules, tune_metrics).
+    """
+    train_df = pd.read_csv(train_path)
+    test_df = pd.read_csv(test_path)
+    splits = make_splits(train_df, test_df)
+
+    X_train, _, _ = get_features_target_segment(splits["train"])
+    all_features = list(X_train.columns)
+    return build_model(splits, all_features, name="all_applicants")
 
 
 if __name__ == "__main__":
