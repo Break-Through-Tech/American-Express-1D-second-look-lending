@@ -10,12 +10,17 @@ Holdout split but not scored here: to be used for final evaluation after tuning.
 import pandas as pd
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score, average_precision_score, log_loss
+import os
+import joblib
 
-from splits import make_splits, get_features_target_segment
+from models.splits import make_splits, get_features_target_segment
 
-TRAIN_PATH = "data/lgbm/train_lgbm.csv"
-TEST_PATH = "data/lgbm/test_lgbm.csv"
+TRAIN_PATH = "data/features/train_features.csv"
+TEST_PATH = "data/features/test_features.csv"
 SEED = 42
+
+MODEL_PATH = "artifacts/lightgbm.joblib"
+PREDICTIONS_PATH = "data/predictions/holdout_lightgbm.csv"
 
 
 # -------------  prep --------------------------------
@@ -157,14 +162,15 @@ def build_model(splits: dict, features: list, segment=None, params=None, name="m
     model = train_lgbm(X_train, y_train, X_tune, y_tune, params=params)
     print(f"\n=== {name} ===")
     metrics, _ = evaluate(model, X_tune, y_tune, seg_tune)
-    # model.save_model("lgbm_model.txt")
     return model, prep_rules, metrics
 
 
 def run(train_path=TRAIN_PATH, test_path=TEST_PATH) -> tuple[lgb.Booster, dict, pd.DataFrame]:
     """Full-feature reference model: every feature, every applicant.
 
-    Loads and splits the data, then calls build_model. Returns (model, prep_rules, tune_metrics).
+    Loads and splits the data, then calls build_model. 
+    Saves the model and its holdout predictions.
+    Returns (model, prep_rules, tune_metrics)
     """
     train_df = pd.read_csv(train_path)
     test_df = pd.read_csv(test_path)
@@ -172,7 +178,20 @@ def run(train_path=TRAIN_PATH, test_path=TEST_PATH) -> tuple[lgb.Booster, dict, 
 
     X_train, _, _ = get_features_target_segment(splits["train"])
     all_features = list(X_train.columns)
-    return build_model(splits, all_features, name="all_applicants")
+
+    model, prep_rules, metrics = build_model(splits, all_features, name="all_applicants")
+
+    # holdout predictions for the comparison
+    X_hold, _, _ = get_features_target_segment(splits["holdout"])
+    holdout_pd = model.predict(apply_prep(X_hold, prep_rules), num_iteration=model.best_iteration)
+    os.makedirs(os.path.dirname(PREDICTIONS_PATH), exist_ok=True)
+    splits["holdout"][["case_id", "target", "is_thin_file"]].assign(pd=holdout_pd).to_csv(PREDICTIONS_PATH, index=False)
+
+    # saving the model to be used in the frontend
+    os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+    joblib.dump({"model": model, "prep_rules": prep_rules}, MODEL_PATH)
+
+    return model, prep_rules, metrics
 
 
 if __name__ == "__main__":
