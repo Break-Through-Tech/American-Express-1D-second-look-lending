@@ -1,0 +1,139 @@
+feature,coefficient,odds_ratio,absolute_coefficient,direction,display_name
+education_927M_f937ecaa,-0.95891356,0.3833091,0.95891356,lower predicted default risk,Education category f937ecaa
+education_927M_2d4a2bc4,0.91724735,2.5023928,0.91724735,higher predicted default risk,Education category 2d4a2bc4
+education_927M_242b264b,0.47812432,1.613046,0.47812432,higher predicted default risk,Education category 242b264b
+riskassesment_940T,0.47293594,1.6046985,0.47293594,higher predicted default risk,Risk assessment score
+education_927M_10795bac,-0.36883324,0.6915407,0.36883324,lower predicted default risk,Education category 10795bac
+missingindicator_riskassesment_940T,0.27946416,1.322421,0.27946416,higher predicted default risk,Risk assessment score missing
+n_unknown,0.26245445,1.3001173,0.26245445,higher predicted default risk,Number of unknown values
+description_5085714M_5568a5e6,-0.124547,0.8828968,0.124547,lower predicted default risk,Credit-file description 5568a5e6
+maritalstatus_703M_ea6fb4b5,-0.1194897,0.88737315,0.1194897,lower predicted default risk,Marital-status category ea6fb4b5
+maritalstatus_703M_f62a4fc7,-0.11530001,0.89109874,0.11530001,lower predicted default risk,Marital-status category f62a4fc7
+maritalstatus_703M_e78cb9c0,-0.11320554,0.8929671,0.11320554,lower predicted default risk,Marital-status category e78cb9c0
+maritalstatus_703M_b58630a7,-0.10822491,0.8974257,0.10822491,lower predicted default risk,Marital-status category b58630a7
+description_5085714M_3802c3d2,-0.09743559,0.90716076,0.09743559,lower predicted default risk,Credit-file description 3802c3d2
+description_5085714M_6ef3de40,-0.092421874,0.91172045,0.092421874,lower predicted default risk,Credit-file description 6ef3de40
+education_927M_6def22f0,0.090252146,1.0944502,0.090252146,higher predicted default risk,Education category 6def22f0
+pmts_dpdvalue_108P_mean,0.0830053,1.0865476,0.0830053,higher predicted default risk,Average days past due
+description_5085714M_521190c5,-0.07648081,0.9263707,0.07648081,lower predicted default risk,Credit-file description 521190c5
+description_5085714M_4dc79565,-0.07071682,0.9317257,0.07071682,lower predicted default risk,Credit-file description 4dc79565
+missingindicator_amount_4527230A_mean,-0.06507339,0.93699867,0.06507339,lower predicted default risk,Average tax-registry amount missing
+missingindicator_amount_4527230A_max,-0.06507339,0.93699867,0.06507339,lower predicted default risk,Maximum tax-registry amount missing
+missingindicator_amount_4527230A_median,-0.06507339,0.93699867,0.06507339,lower predicted default risk,Median tax-registry amount missing
+classificationofcontr_13M_54ddc605,0.06257888,1.0645784,0.06257888,higher predicted default risk,Bureau contract category 54ddc605 count
+amount_4527230A_mean,-0.06018936,0.9415862,0.06018936,lower predicted default risk,Average tax-registry amount
+missingindicator_credamount_590A_median,-0.059814148,0.9419396,0.059814148,lower predicted default risk,Median prior application amount missing
+missingindicator_credamount_590A_max,-0.059814148,0.9419396,0.059814148,lower predicted default risk,Maximum prior application amount missing
+missingindicator_credamount_590A_mean,-0.059814148,0.9419396,0.059814148,lower predicted default risk,Average prior application amount missing
+missingindicator_mainoccupationinc_384A,-0.05967947,0.94206643,0.05967947,lower predicted default risk,Applicant income missing
+missingindicator_mainoccupationinc_384A_mean,-0.058315203,0.9433526,0.058315203,lower predicted default risk,Mainoccupationinc 384A Mean missing
+missingindicator_mainoccupationinc_384A_max,-0.058315203,0.9433526,0.058315203,lower predicted default risk,Mainoccupationinc 384A Max missing
+missingindicator_mainoccupationinc_384A_median,-0.058315203,0.9433526,0.058315203,lower predicted default risk,Mainoccupationinc 384A Median missing
+missingindicator_requested_vs_prior_application,-0.049682528,0.95153147,0.049682528,lower predicted default risk,Requested Vs Prior Application missing
+classificationofcontr_13M_6f5666c7,-0.04862145,0.95254165,0.04862145,lower predicted default risk,Bureau contract category 6f5666c7 count
+description_5085714M_34bbcd2a,0.04851082,1.0497067,0.04851082,higher predicted default risk,Credit-file description 34bbcd2a
+missingindicator_pmts_overdue_1140A_contractmax_max,-0.04802109,0.9531137,0.04802109,lower predicted default risk,Pmts Overdue 1140A Contractmax Max missing
+missingindicator_pmts_overdue_1140A_allpayments_mean,-0.04802109,0.9531137,0.04802109,lower predicted default risk,Pmts Overdue 1140A Allpayments Mean missing
+missingindicator_pmts_overdue_1140A_allpayments_median,-0.04802109,0.9531137,0.04802109,lower predicted default risk,Pmts Overdue 1140A Allpayments Median missing
+has_prior_application,-0.04727767,0.9538225,0.04727767,lower predicted default risk,Has Prior Application
+days_employed_700P,-0.04658267,0.95448565,0.04658267,lower predicted default risk,Employment duration
+missingindicator_annuity_780A,-0.04579286,0.95523983,0.04579286,lower predicted default risk,Loan annuity missing
+missingindicator_numberofqueries_146L,0.044419743,1.0454211,0.044419743,higher predicted default risk,Recent credit queries missing
+description_5085714M_MISSING,0.044419743,1.0454211,0.044419743,higher predicted default risk,Credit-file description MISSING
+missingindicator_credamount_770A_mean,0.044419743,1.0454211,0.044419743,higher predicted default risk,Credamount 770A Mean missing
+missingindicator_credamount_770A_max,0.044419743,1.0454211,0.044419743,higher predicted default risk,Credamount 770A Max missing
+missingindicator_credamount_770A_median,0.044419743,1.0454211,0.044419743,higher predicted default risk,Credamount 770A Median missing
+missingindicator_pmts_dpdvalue_108P_mean,0.044419743,1.0454211,0.044419743,higher predicted default risk,Average days past due missing
+missingindicator_pmts_dpdvalue_108P_max,0.044419743,1.0454211,0.044419743,higher predicted default risk,Maximum days past due missing
+missingindicator_payments_per_contract,0.044419743,1.0454211,0.044419743,higher predicted default risk,Payments Per Contract missing
+missingindicator_dpd_bucket,0.044419743,1.0454211,0.044419743,higher predicted default risk,Days-past-due bucket missing
+missingindicator_pmts_dpdvalue_108P_median,0.044419743,1.0454211,0.044419743,higher predicted default risk,Median days past due missing
+missingindicator_empl_employedtotal_800L_mean,-0.0411987,0.9596384,0.0411987,lower predicted default risk,Average employment history missing
+missingindicator_empl_employedtotal_800L_max,-0.0411987,0.9596384,0.0411987,lower predicted default risk,Empl Employedtotal 800L Max missing
+missingindicator_empl_employedtotal_800L_median,-0.0411987,0.9596384,0.0411987,lower predicted default risk,Empl Employedtotal 800L Median missing
+mainoccupationinc_384A_max,0.038989604,1.0397596,0.038989604,higher predicted default risk,Mainoccupationinc 384A Max
+overdueamountmax_950A_mean,0.03657665,1.0372539,0.03657665,higher predicted default risk,Average maximum overdue amount
+income_total,-0.034520373,0.9660687,0.034520373,lower predicted default risk,Total household income
+mainoccupationinc_384A,-0.03333583,0.9672137,0.03333583,lower predicted default risk,Applicant income
+mainoccupationinc_384A_mean,-0.030645316,0.9698195,0.030645316,lower predicted default risk,Mainoccupationinc 384A Mean
+mainoccupationinc_384A_median,-0.030645316,0.9698195,0.030645316,lower predicted default risk,Mainoccupationinc 384A Median
+has_tax_record,-0.029856913,0.9705844,0.029856913,lower predicted default risk,Has Tax Record
+missingindicator_annuity_to_income,0.029599579,1.030042,0.029599579,higher predicted default risk,Annuity-to-income ratio missing
+pmts_dpdvalue_108P_median,-0.02934528,0.97108114,0.02934528,lower predicted default risk,Median days past due
+pmts_dpdvalue_108P_max,-0.028504834,0.9718976,0.028504834,lower predicted default risk,Maximum days past due
+missingindicator_personal_income_share,-0.025710033,0.97461766,0.025710033,lower predicted default risk,Applicant share of household income missing
+average_overdue_ratio,-0.02558885,0.9747358,0.02558885,lower predicted default risk,Average overdue-to-credit ratio
+missingindicator_income_vs_tax,0.025481952,1.0258094,0.025481952,higher predicted default risk,Income Vs Tax missing
+classificationofcontr_13M_01851564,-0.024020188,0.976266,0.024020188,lower predicted default risk,Bureau contract category 01851564 count
+empl_employedtotal_800L_median,-0.023928052,0.97635597,0.023928052,lower predicted default risk,Empl Employedtotal 800L Median
+empl_employedtotal_800L_mean,-0.023928052,0.97635597,0.023928052,lower predicted default risk,Average employment history
+credamount_770A_mean,0.020486875,1.0206982,0.020486875,higher predicted default risk,Credamount 770A Mean
+credamount_770A,-0.01817637,0.98198783,0.01817637,lower predicted default risk,Requested credit
+missingindicator_average_overdue_ratio,-0.017302584,0.98284626,0.017302584,lower predicted default risk,Average overdue-to-credit ratio missing
+missingindicator_overdue_to_credit,-0.017302584,0.98284626,0.017302584,lower predicted default risk,Maximum overdue-to-credit ratio missing
+missingindicator_overdueamountmax_950A_median,-0.017302584,0.98284626,0.017302584,lower predicted default risk,Overdueamountmax 950A Median missing
+missingindicator_overdueamountmax_950A_max,-0.017302584,0.98284626,0.017302584,lower predicted default risk,Overdueamountmax 950A Max missing
+missingindicator_overdueamountmax_950A_mean,-0.017302584,0.98284626,0.017302584,lower predicted default risk,Average maximum overdue amount missing
+months_since_last_application,-0.017081892,0.98306316,0.017081892,lower predicted default risk,Months since last application
+numberofqueries_146L,0.01655554,1.0166934,0.01655554,higher predicted default risk,Recent credit queries
+credamount_590A_median,-0.016478047,0.983657,0.016478047,lower predicted default risk,Median prior application amount
+requested_vs_prior_application,0.015241176,1.015358,0.015241176,higher predicted default risk,Requested Vs Prior Application
+overdue_to_credit,0.013140245,1.013227,0.013140245,higher predicted default risk,Maximum overdue-to-credit ratio
+income_vs_tax,0.012752026,1.0128337,0.012752026,higher predicted default risk,Income Vs Tax
+pmts_overdue_1140A_allpayments_median,0.010586779,1.010643,0.010586779,higher predicted default risk,Pmts Overdue 1140A Allpayments Median
+classificationofcontr_13M_ba38dde4,-0.010219073,0.98983294,0.010219073,lower predicted default risk,Bureau contract category ba38dde4 count
+missingindicator_employment_share_of_life,-0.009887659,0.99016106,0.009887659,lower predicted default risk,Employment share of life missing
+missingindicator_days_employed_700P,-0.009887659,0.99016106,0.009887659,lower predicted default risk,Employment duration missing
+credit_to_income,0.009881723,1.0099307,0.009881723,higher predicted default risk,Credit-to-income ratio
+missingindicator_credit_to_annuity,-0.009750448,0.99029696,0.009750448,lower predicted default risk,Credit-to-annuity ratio missing
+overdueamountmax_950A_max,-0.009652372,0.99039406,0.009652372,lower predicted default risk,Overdueamountmax 950A Max
+credamount_590A_mean,-0.008923484,0.9911162,0.008923484,lower predicted default risk,Average prior application amount
+annuity_to_income,0.008921044,1.008961,0.008921044,higher predicted default risk,Annuity-to-income ratio
+missingindicator_requested_vs_past_credit,0.008765144,1.0088037,0.008765144,higher predicted default risk,Requested Vs Past Credit missing
+pmts_overdue_1140A_allpayments_mean,-0.0086792,0.99135834,0.0086792,lower predicted default risk,Pmts Overdue 1140A Allpayments Mean
+age_in_years,-0.008668522,0.99136895,0.008668522,lower predicted default risk,Age In Years
+payment_rowcount_sum,0.008591217,1.0086282,0.008591217,higher predicted default risk,Recorded bureau payments
+dpd_bucket,0.00789392,1.0079252,0.00789392,higher predicted default risk,Days-past-due bucket
+annuity_780A,-0.007379231,0.99264795,0.007379231,lower predicted default risk,Loan annuity
+credamount_590A_max,-0.007211667,0.9928143,0.007211667,lower predicted default risk,Maximum prior application amount
+name_4527232M_69c767ed,0.007123845,1.0071493,0.007123845,higher predicted default risk,Name 4527232M 69C767Ed
+employment_share_of_life,-0.0069848606,0.9930395,0.0069848606,lower predicted default risk,Employment share of life
+credamount_770A_median,0.0067073866,1.00673,0.0067073866,higher predicted default risk,Credamount 770A Median
+missingindicator_credit_to_income,-0.0057862895,0.9942304,0.0057862895,lower predicted default risk,Credit-to-income ratio missing
+missingindicator_months_since_last_application,-0.0057153627,0.99430096,0.0057153627,lower predicted default risk,Months since last application missing
+has_second_person,0.0054559014,1.0054708,0.0054559014,higher predicted default risk,Has Second Person
+person_rowcount,0.005453505,1.0054684,0.005453505,higher predicted default risk,Person Rowcount
+name_4527232M_4086b8cf,0.0049763625,1.0049888,0.0049763625,higher predicted default risk,Name 4527232M 4086B8Cf
+name_4527232M_5fd4af02,-0.0048740655,0.9951378,0.0048740655,lower predicted default risk,Name 4527232M 5Fd4Af02
+name_4527232M_2e8792b8,0.0041180877,1.0041265,0.0041180877,higher predicted default risk,Name 4527232M 2E8792B8
+classificationofcontr_13M_d8bf6dd7,-0.0040604956,0.9959477,0.0040604956,lower predicted default risk,Bureau contract category d8bf6dd7 count
+empl_employedtotal_800L_max,-0.003963177,0.9960447,0.003963177,lower predicted default risk,Empl Employedtotal 800L Max
+amount_4527230A_max,0.0038454742,1.0038528,0.0038454742,higher predicted default risk,Maximum tax-registry amount
+housingtype_772M_97bb64e3,0.003809502,1.0038167,0.003809502,higher predicted default risk,Housingtype 772M 97Bb64E3
+tax_rowcount,0.0037377921,1.0037448,0.0037377921,higher predicted default risk,Tax Rowcount
+total_external_records,0.0037244123,1.0037314,0.0037244123,higher predicted default risk,Total external records
+name_4527232M_22eca1b4,0.0037007055,1.0037075,0.0037007055,higher predicted default risk,Name 4527232M 22Eca1B4
+bureau_rowcount,0.003152381,1.0031574,0.003152381,higher predicted default risk,Bureau Rowcount
+name_4527232M_43036c45,-0.002871682,0.9971324,0.002871682,lower predicted default risk,Name 4527232M 43036C45
+requested_vs_past_credit,0.002845273,1.0028493,0.002845273,higher predicted default risk,Requested Vs Past Credit
+amount_4527230A_median,-0.0024185262,0.9975844,0.0024185262,lower predicted default risk,Median tax-registry amount
+housingtype_772M_c93f8128,0.002129868,1.0021322,0.002129868,higher predicted default risk,Housingtype 772M C93F8128
+status_219L_a2839ee4,0.0020970416,1.0020993,0.0020970416,higher predicted default risk,Status 219L A2839Ee4
+payments_per_contract,-0.0019208783,0.99808097,0.0019208783,lower predicted default risk,Payments Per Contract
+applprev_rowcount,0.0018739377,1.0018756,0.0018739377,higher predicted default risk,Applprev Rowcount
+credamount_770A_max,-0.0015632279,0.998438,0.0015632279,lower predicted default risk,Credamount 770A Max
+overdueamountmax_950A_median,-0.0013445282,0.9986564,0.0013445282,lower predicted default risk,Overdueamountmax 950A Median
+status_219L_fa96ae9d,0.0013164191,1.0013173,0.0013164191,higher predicted default risk,Status 219L Fa96Ae9D
+housingtype_772M_2339333a,-0.0011636713,0.998837,0.0011636713,lower predicted default risk,Housingtype 772M 2339333A
+missingindicator_credamount_770A,-0.0011619881,0.99883866,0.0011619881,lower predicted default risk,Requested credit missing
+name_4527232M_e4848b42,-0.00086200156,0.99913836,0.00086200156,lower predicted default risk,Name 4527232M E4848B42
+housingtype_772M_a19ac633,-0.0008091101,0.9991912,0.0008091101,lower predicted default risk,Housingtype 772M A19Ac633
+name_4527232M_e30629fa,0.0007795304,1.0007799,0.0007795304,higher predicted default risk,Name 4527232M E30629Fa
+pmts_overdue_1140A_contractmax_max,-0.00050781254,0.9994923,0.00050781254,lower predicted default risk,Pmts Overdue 1140A Contractmax Max
+name_4527232M_28a6bf7a,0.0005008375,1.0005009,0.0005008375,higher predicted default risk,Name 4527232M 28A6Bf7A
+status_219L_dedbd039,-0.00023124865,0.9997688,0.00023124865,lower predicted default risk,Status 219L Dedbd039
+personal_income_share,0.00021373526,1.0002137,0.00021373526,higher predicted default risk,Applicant share of household income
+housingtype_772M_39303e4a,-0.00020178425,0.99979824,0.00020178425,lower predicted default risk,Housingtype 772M 39303E4A
+classificationofcontr_13M_fe64f125,-0.00017847777,0.99982154,0.00017847777,lower predicted default risk,Bureau contract category fe64f125 count
+credit_to_annuity,0.00015945623,1.0001595,0.00015945623,higher predicted default risk,Credit-to-annuity ratio
+name_4527232M_ab4fffa8,-6.88544e-05,0.99993116,6.88544e-05,lower predicted default risk,Name 4527232M Ab4Fffa8

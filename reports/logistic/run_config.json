@@ -1,0 +1,16 @@
+{
+  "train_path": "data/features/train_features.csv",
+  "test_path": "data/features/test_features.csv",
+  "rows": {
+    "train": 695614,
+    "calibration": 65319,
+    "policy_validation": 64939,
+    "holdout": 174128,
+    "score": 200000
+  },
+  "input_features": 82,
+  "output_features": 138,
+  "selected_C": 0.01,
+  "calibration_method": "isotonic",
+  "stage1_threshold": 0.21
+}

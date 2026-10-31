@@ -9,5 +9,6 @@ data/preprocessed/*.csv
 
 .DS_Store
 data/features/*.csv
+data/predictions/*.csv
 
 context.md
