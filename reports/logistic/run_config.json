@@ -1,0 +1,22 @@
+{
+  "train_path": "data/features/train_features.csv",
+  "test_path": "data/features/test_features.csv",
+  "rows": {
+    "train": 695614,
+    "calibration": 65319,
+    "policy_validation": 64939,
+    "holdout": 174128,
+    "score": 200000
+  },
+  "input_features": 82,
+  "output_features": 138,
+  "selected_C": 0.01,
+  "calibration_method": "isotonic",
+  "selected_policy": "default_ceiling",
+  "stage1_threshold": 0.21290050446987155,
+  "policy_candidates": {
+    "default_ceiling": 0.21290050446987155,
+    "profit": 0.215
+  },
+  "max_approved_default_rate": 0.1
+}
