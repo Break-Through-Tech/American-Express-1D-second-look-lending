@@ -114,6 +114,7 @@ def summarize(splits: dict) -> pd.DataFrame:
         })
     return pd.DataFrame(rows).set_index("split")
 
+
 def get_features_target_segment(df: pd.DataFrame, drop_cols=DROP_COLS
                                 ) -> tuple[pd.DataFrame, Optional[pd.Series], pd.Series]:
     """Separate one split's dataframe into model inputs, labels, and fairness segments.
