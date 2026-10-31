@@ -26,7 +26,7 @@ STEPS = [
     ("clean_data", "clean_data.py"),          # -> data/cleaned
     ("features", "features.py"),              # -> data/features
     ("preprocess_data", "preprocess_data.py"),  # -> data/preprocessed
-#     ("prepare_lgbm_data", "prepare_lgbm_data.py"), # not implemented, yet + throws error
+    ("prepare_lgbm_data", "prepare_lgbm_data.py"), 
     ("eda", "eda.py"),                        # -> reports/eda/figures
 ]
 
