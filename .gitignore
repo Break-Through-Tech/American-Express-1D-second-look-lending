@@ -11,3 +11,7 @@ data/preprocessed/*.csv
 data/features/*.csv
 
 context.md
+
+models/artifacts/random_forest.joblib
+models/artifacts/second_look_random_forest.joblib
+data/predictions/*.csv
