@@ -1,10 +1,6 @@
 numpy==2.5.3
 pandas==3.0.5
-python-dateutil==2.9.0.post0
-six==1.17.0
-
 scikit-learn==1.9.0
 matplotlib==3.11.2
 lightgbm==4.7.0
-
-joblib==1.6.0
+streamlit==1.66.1

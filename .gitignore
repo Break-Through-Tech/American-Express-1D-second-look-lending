@@ -6,10 +6,8 @@ data/test/*
 data/aggregated/**.csv
 data/cleaned/*.csv
 data/preprocessed/*.csv
-data/lgbm/*.csv
 
 .DS_Store
 data/features/*.csv
 
 context.md
-data/predictions/*.csv

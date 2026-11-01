@@ -10,7 +10,6 @@ both the training and test data.
 
 Same as in clean_data.py: -1 means the value is unknown. Any input that is -1 is treated as
 unknown and if a feature cannot be calculated it is stored as -1.
-add_features(..., missing_value=np.nan) stores NaN instead; prepare_lgbm_data.py uses that.
 
 Features
 
@@ -94,12 +93,12 @@ def unknown_to_nan(values: pd.Series) -> pd.Series:
     return values.mask(values == MISSING_VALUE)
 
 
-def ratio(numerator: pd.Series, denominator: pd.Series, missing_value: float = MISSING_VALUE) -> pd.Series:
-    """numerator / denominator. Written as missing_value where either side is unknown or the denominator is 0."""
+def ratio(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
+    """numerator / denominator. Written as -1 where either side is unknown or the denominator is 0."""
     num = unknown_to_nan(numerator)
     den = unknown_to_nan(denominator)
     den = den.mask(den == 0)
-    return (num / den).fillna(missing_value)
+    return (num / den).fillna(MISSING_VALUE)
 
 
 def last_prior_approval(raw_dir: str, prefix: str) -> pd.Series:
@@ -112,7 +111,7 @@ def last_prior_approval(raw_dir: str, prefix: str) -> pd.Series:
     return applprev.groupby("case_id")["approvaldate_319D"].max()
 
 
-def add_features(df: pd.DataFrame, last_approval: pd.Series, missing_value: float = MISSING_VALUE) -> pd.DataFrame:
+def add_features(df: pd.DataFrame, last_approval: pd.Series) -> pd.DataFrame:
     """Add every feature to a cleaned dataframe. Drops birth_259D once age has been worked out."""
     df = df.copy()
 
@@ -134,30 +133,28 @@ def add_features(df: pd.DataFrame, last_approval: pd.Series, missing_value: floa
     df = df.drop(columns=["birth_259D"])
 
     # affordability. These come from the applicant's own form, so thin-file applicants have them too.
-    df["annuity_to_income"] = ratio(df["annuity_780A"], df["mainoccupationinc_384A"], missing_value)
-    df["credit_to_income"] = ratio(df["credamount_770A"], df["mainoccupationinc_384A"], missing_value)
-    df["credit_to_annuity"] = ratio(df["credamount_770A"], df["annuity_780A"], missing_value)
-    df["income_vs_tax"] = ratio(df["mainoccupationinc_384A"], df["amount_4527230A_mean"], missing_value)
-    df["requested_vs_past_credit"] = ratio(df["credamount_770A"], df["credamount_770A_mean"], missing_value)
-    df["requested_vs_prior_application"] = ratio(df["credamount_770A"], df["credamount_590A_mean"], missing_value)
+    df["annuity_to_income"] = ratio(df["annuity_780A"], df["mainoccupationinc_384A"])
+    df["credit_to_income"] = ratio(df["credamount_770A"], df["mainoccupationinc_384A"])
+    df["credit_to_annuity"] = ratio(df["credamount_770A"], df["annuity_780A"])
+    df["income_vs_tax"] = ratio(df["mainoccupationinc_384A"], df["amount_4527230A_mean"])
+    df["requested_vs_past_credit"] = ratio(df["credamount_770A"], df["credamount_770A_mean"])
+    df["requested_vs_prior_application"] = ratio(df["credamount_770A"], df["credamount_590A_mean"])
     years_employed = unknown_to_nan(df["days_employed_700P"]) / DAYS_PER_YEAR
-    df["employment_share_of_life"] = ratio(years_employed, df["age_in_years"], missing_value)
-    df["personal_income_share"] = ratio(df["mainoccupationinc_384A"], df["income_total"], missing_value)
+    df["employment_share_of_life"] = ratio(years_employed, df["age_in_years"])
+    df["personal_income_share"] = ratio(df["mainoccupationinc_384A"], df["income_total"])
 
     # past-loan behaviour. Unknown (-1) for thin-file applicants, since they have no past loans.
-    df["overdue_to_credit"] = ratio(df["overdueamountmax_950A_max"], df["credamount_770A_max"], missing_value)
-    df["payments_per_contract"] = ratio(df["payment_rowcount_sum"], df["bureau_rowcount"], missing_value)
-    df["average_overdue_ratio"] = ratio(df["overdueamountmax_950A_mean"], df["credamount_770A_mean"], missing_value)
+    df["overdue_to_credit"] = ratio(df["overdueamountmax_950A_max"], df["credamount_770A_max"])
+    df["payments_per_contract"] = ratio(df["payment_rowcount_sum"], df["bureau_rowcount"])
+    df["average_overdue_ratio"] = ratio(df["overdueamountmax_950A_mean"], df["credamount_770A_mean"])
 
     worst_dpd = unknown_to_nan(df["pmts_dpdvalue_108P_max"])
     bucket = pd.cut(worst_dpd, bins=DPD_BINS, labels=[0, 1, 2, 3]).astype(float)   # NaN stays NaN
-    bucket = bucket.fillna(missing_value)
-    # an int column cannot hold NaN, so only cast when unknowns are filled with a number
-    df["dpd_bucket"] = bucket if pd.isna(missing_value) else bucket.astype(int)
+    df["dpd_bucket"] = bucket.fillna(MISSING_VALUE).astype(int)
 
     # how long ago the applicant last got a loan from us. -1 if never, or if the date is unknown.
     days_since = (decision_date - df["case_id"].map(last_approval)).dt.days
-    df["months_since_last_application"] = (days_since / DAYS_PER_MONTH).fillna(missing_value)
+    df["months_since_last_application"] = (days_since / DAYS_PER_MONTH).fillna(MISSING_VALUE)
 
     return df
 
