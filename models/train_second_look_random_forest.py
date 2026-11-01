@@ -24,9 +24,9 @@ import joblib
 import matplotlib
 import numpy as np
 import pandas as pd
-from sklearn.calibration import calibration_curve
 from sklearn.isotonic import IsotonicRegression
-from sklearn.metrics import brier_score_loss, log_loss, roc_auc_score
+from sklearn.metrics import average_precision_score, brier_score_loss, log_loss, roc_auc_score
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OneHotEncoder
 
 matplotlib.use("Agg")
@@ -60,8 +60,14 @@ def fit_encoder(X_train: pd.DataFrame) -> OneHotEncoder:
     return encoder
 
 
-def prep(X: pd.DataFrame, encoder: OneHotEncoder, dead: list) -> pd.DataFrame:
+def fit_education_order(X_train: pd.DataFrame, y_train: pd.Series) -> dict:
+    rates = y_train.groupby(X_train["education_927M"], observed=True).mean().sort_values()
+    return {cat: rank for rank, cat in enumerate(rates.index)}
+
+
+def prep(X: pd.DataFrame, encoder: OneHotEncoder, dead: list, edu_map: dict) -> pd.DataFrame:
     X = X.drop(columns=[col for col in dead + EXCLUDED_COLS if col in X.columns])
+    X["education_ordinal"] = X["education_927M"].map(edu_map).fillna(-1).astype(float)
     onehot = pd.DataFrame(
         encoder.transform(X[TEXT_COLS]),
         columns=encoder.get_feature_names_out(TEXT_COLS),
@@ -72,7 +78,6 @@ def prep(X: pd.DataFrame, encoder: OneHotEncoder, dead: list) -> pd.DataFrame:
         X[col] = X[col].astype(int)
     return pd.concat([X, onehot], axis=1)
 
-
 # ------------- evaluation --------------------------------
 def thin_metrics(p: np.ndarray, y: pd.Series, cutoff: float = CUTOFF) -> dict:
     approved = p < cutoff
@@ -80,6 +85,7 @@ def thin_metrics(p: np.ndarray, y: pd.Series, cutoff: float = CUTOFF) -> dict:
     return {
         "rows": int(len(p)),
         "auc": roc_auc_score(y, p),
+        "pr_auc": average_precision_score(y, p),
         "logloss": log_loss(y, p, labels=[0, 1]),
         "brier": brier_score_loss(y, p),
         "default_rate": float(y.mean()),
@@ -173,7 +179,10 @@ def main(quick: bool, stage1_path: Path) -> None:
     print(f"\n{len(dead)} columns never vary for thin-file applicants and are dropped:")
     print("  " + ", ".join(dead))
     encoder = fit_encoder(X_train)
-    X_train, X_tune, X_hold, X_score = (prep(X, encoder, dead) for X in (X_train, X_tune, X_hold, X_score))
+    edu_map = fit_education_order(X_train, y_train)
+    X_train, X_tune, X_hold, X_score = (
+        prep(X, encoder, dead, edu_map) for X in (X_train, X_tune, X_hold, X_score)
+    )
     print(f"\nFeatures going into the second-look forest: {X_train.shape[1]}")
 
     print("\nFitting with default settings...")
@@ -244,8 +253,8 @@ def main(quick: bool, stage1_path: Path) -> None:
     print(importance.head(10).to_string(index=False))
 
     joblib.dump(
-        {"model": model, "encoder": encoder, "calibrator": calibrator, "settings": settings,
-         "feature_columns": list(X_train.columns), "dropped_columns": dead},
+        {"model": model, "encoder": encoder, "edu_map": edu_map, "calibrator": calibrator,
+         "settings": settings, "feature_columns": list(X_train.columns), "dropped_columns": dead},
         ARTIFACTS_DIR / "second_look_random_forest.joblib",
     )
     holdout["score"] = 1 - holdout["p_default"]   # chance they pay it back
@@ -260,10 +269,29 @@ def main(quick: bool, stage1_path: Path) -> None:
     score["score"] = 1 - score["p_default"]
     first_scores = PREDICTIONS_DIR / "random_forest_score.csv"
     if first_scores.is_file():
-        score = score.merge(pd.read_csv(first_scores)[["case_id", "p_default"]].rename(columns={"p_default": "p_first"}),
-                            on="case_id", how="left")
+        full_score = pd.read_csv(first_scores)
+        score = score.merge(
+            full_score[["case_id", "p_default"]].rename(columns={"p_default": "p_first"}),
+            on="case_id",
+            how="left",
+        )
         score["first_model_approved"] = score["p_first"] < CUTOFF
         score["second_look_approved"] = ~score["first_model_approved"] & (score["p_default"] < CUTOFF)
+
+        full_score = full_score.merge(
+            score[["case_id", "p_default"]].rename(columns={"p_default": "p_second_look"}),
+            on="case_id",
+            how="left",
+        )
+        rejected_thin = (full_score[SEGMENT] == 1) & (full_score["p_default"] >= CUTOFF)
+        full_score["p_final"] = np.where(
+            rejected_thin, full_score["p_second_look"], full_score["p_default"]
+        )
+        full_score["score_final"] = 1 - full_score["p_final"]
+        full_score["approved_final"] = (full_score["p_default"] < CUTOFF) | (
+            rejected_thin & (full_score["p_second_look"] < CUTOFF)
+        )
+        full_score.to_csv(PREDICTIONS_DIR / "two_stage_combined_score.csv", index=False)
     score.to_csv(PREDICTIONS_DIR / "second_look_score.csv", index=False)
 
     results.to_csv(REPORTS_DIR / "metrics.csv", index=False)
@@ -281,4 +309,5 @@ if __name__ == "__main__":
     parser.add_argument("--quick", action="store_true", help="skip the tuning loop")
     parser.add_argument("--stage1", type=Path, default=STAGE1_FILE,
                         help="holdout predictions of the first model (case_id, is_thin_file, target, p_default)")
-    main(quick=parser.parse_args().quick, stage1_path=parser.parse_args().stage1)
+    args = parser.parse_args()
+    main(quick=args.quick, stage1_path=args.stage1)

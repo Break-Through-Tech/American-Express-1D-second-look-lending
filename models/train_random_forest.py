@@ -20,13 +20,14 @@ import sys
 from pathlib import Path
 
 import joblib
+import optuna
 import matplotlib
 import numpy as np
 import pandas as pd
 from sklearn.calibration import calibration_curve
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.isotonic import IsotonicRegression
-from sklearn.metrics import brier_score_loss, log_loss, roc_auc_score
+from sklearn.metrics import average_precision_score, brier_score_loss, log_loss, roc_auc_score
 from sklearn.preprocessing import OneHotEncoder
 
 matplotlib.use("Agg")
@@ -97,19 +98,53 @@ def fit_forest(X: pd.DataFrame, y: pd.Series, settings: dict) -> RandomForestCla
     model.fit(X, y)
     return model
 
-
-def tune(X_train: pd.DataFrame, y_train: pd.Series, X_tune: pd.DataFrame, y_tune: pd.Series) -> dict:
+def tune(X_train: pd.DataFrame, y_train: pd.Series, X_tune: pd.DataFrame, y_tune: pd.Series, n_bayesian_trials: int = 12,) -> dict:
     sample = X_train.sample(min(TUNE_SAMPLE_ROWS, len(X_train)), random_state=SEED).index
+    X_sub, y_sub = X_train.loc[sample], y_train.loc[sample]
     best_settings, best_auc = None, -1.0
+
+    print("Grid Search")
     for settings in GRID:
         settings = {"n_estimators": 200, **settings}
-        model = fit_forest(X_train.loc[sample], y_train.loc[sample], settings)
+        model = fit_forest(X_sub, y_sub, settings)
         auc = roc_auc_score(y_tune, model.predict_proba(X_tune)[:, 1])
-        print(f"  {settings}  tune AUC {auc:.4f}")
+        print(f"  [Grid] {settings}  tune AUC {auc:.4f}")
         if auc > best_auc:
             best_settings, best_auc = settings, auc
+
+    print("Bayesian Search using optuna")
+    optuna.logging.set_verbosity(optuna.logging.WARNING)
+
+    def objective(trial: optuna.Trial) -> float:
+        use_depth = trial.suggest_categorical("use_depth", [True, False])
+        max_depth = trial.suggest_int("max_depth", 10, 28) if use_depth else None
+        candidate = {
+            "n_estimators": 200,
+            "max_depth": max_depth,
+            "min_samples_leaf": trial.suggest_int("min_samples_leaf", 25, 500, log=True),
+            "max_features": trial.suggest_float("max_features", 0.1, 0.4),
+        }
+        model = fit_forest(X_sub, y_sub, candidate)
+        auc = roc_auc_score(y_tune, model.predict_proba(X_tune)[:, 1])
+        print(f"  [Bayes {trial.number:02d}] {candidate}  tune AUC {auc:.4f}")
+        return auc
+
+    study = optuna.create_study(
+        direction="maximize", sampler=optuna.samplers.TPESampler(seed=SEED)
+    )
+    study.optimize(objective, n_trials=n_bayesian_trials)
+
+    if study.best_value > best_auc:
+        best_auc = study.best_value
+        bp = study.best_params
+        best_settings = {
+            "max_depth": bp["max_depth"] if bp["use_depth"] else None,
+            "min_samples_leaf": bp["min_samples_leaf"],
+            "max_features": bp["max_features"],
+        }
+
     best_settings = {**best_settings, "n_estimators": DEFAULT_SETTINGS["n_estimators"]}
-    print(f"best: {best_settings}  tune AUC {best_auc:.4f}")
+    print(f"best overall: {best_settings}  tune AUC {best_auc:.4f}")
     return best_settings
 
 
@@ -154,19 +189,21 @@ def metrics(p: np.ndarray, y: pd.Series, seg: pd.Series, split: str, version: st
         "thin_file": (seg == 1).to_numpy(),
     }
     for name, mask in groups.items():
+        approved_mask = p[mask] < CUTOFF
         rows.append({
             "split": split,
             "version": version,
             "segment": name,
             "rows": int(mask.sum()),
             "auc": roc_auc_score(y[mask], p[mask]),
+            "pr_auc": average_precision_score(y[mask], p[mask]),
             "logloss": log_loss(y[mask], p[mask], labels=[0, 1]),
             "brier": brier_score_loss(y[mask], p[mask]),
             "default_rate": float(y[mask].mean()),
             "mean_predicted_default": float(p[mask].mean()),
             "calibration_gap": float(p[mask].mean() - y[mask].mean()),   # positive = over-predicts risk
-            "approval_rate": float((p[mask] < CUTOFF).mean()),
-            "default_rate_of_approved": float(y[mask][p[mask] < CUTOFF].mean()),
+            "approval_rate": float(approved_mask.mean()),
+            "default_rate_of_approved": float(y[mask][approved_mask].mean()) if approved_mask.any() else np.nan,
         })
     rows[0]["inclusion_gap"] = inclusion_gap(p, y, seg)
     rows[0]["expected_profit"] = expected_profit(p, y)
