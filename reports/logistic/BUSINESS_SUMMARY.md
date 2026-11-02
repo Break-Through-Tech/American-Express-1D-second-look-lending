@@ -37,7 +37,7 @@ The current profit calculation uses normalized comparison units:
 
 Under those assumptions, the break-even approved-group default rate is 20%. For every five approved
 applicants, one default offsets the value created by four repayers. The 20% figure is an economic
-reference point, while Rachel's 10% approved-pool ceiling is the stricter operating rule used by the
+reference point, while the 10% approved-pool ceiling is the stricter operating rule used by the
 current Stage 1 policy.
 
 | Holdout policy | Immediate approval | Approved default rate | Normalized total profit | Profit per applicant | Inclusion gap |
@@ -60,7 +60,7 @@ team's agreed business values.
 
 ## What the Threshold Means
 
-The active policy uses Rachel's 10% approved-pool default ceiling. The 10% rule applies to the average
+The active policy uses a 10% approved-pool default ceiling. The 10% rule applies to the average
 observed default rate across everyone approved on policy-validation data. It does not mean that every
 approved applicant has exactly 10% predicted risk.
 

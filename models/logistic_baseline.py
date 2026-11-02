@@ -5,7 +5,7 @@ Run from the repository root:
 
     python models/logistic_baseline.py
 
-Rachel's preprocessing and default-rate-ceiling policy remain the base. The integrated
+The original preprocessing and default-rate-ceiling policy remain the base. The integrated
 workflow adds probability calibration, an alternate profit policy, saved artifacts,
 frontend-ready routing predictions, plots, error analysis, and a written summary.
 """
@@ -113,7 +113,7 @@ def probability_logit(probabilities: np.ndarray) -> np.ndarray:
 
 
 def model_inputs(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series | None, pd.Series]:
-    """Use the shared splitter helper and apply Rachel's feature cleaning."""
+    """Use the shared splitter helper and apply the original feature cleaning."""
     features, target, segment = get_features_target_segment(frame)
     return clean_X(features), target, segment
 
@@ -129,7 +129,7 @@ def clean_X(features: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_preprocessor(features: pd.DataFrame) -> tuple[ColumnTransformer, list[str], list[str]]:
-    """Build Rachel's median/indicator/scaling and one-hot preprocessing pipeline."""
+    """Build the median/indicator/scaling and one-hot preprocessing pipeline."""
     numeric_columns = features.select_dtypes(include=["number", "bool"]).columns.tolist()
     categorical_columns = [column for column in features.columns if column not in numeric_columns]
 
@@ -470,7 +470,7 @@ def choose_threshold(
     max_default_rate: float,
     min_approvals: int = 100,
 ) -> float:
-    """Keep the largest complete low-risk pool under Rachel's default-rate ceiling."""
+    """Keep the largest complete low-risk pool under the default-rate ceiling."""
     target_values = np.asarray(target, dtype=int)
     order = np.argsort(probabilities, kind="stable")
     sorted_probabilities = np.asarray(probabilities)[order]
@@ -500,7 +500,7 @@ def select_threshold(
     policy_name: str,
     max_default_rate: float,
 ) -> tuple[float, pd.DataFrame, dict[str, float]]:
-    """Compare Rachel's ceiling policy with the normalized-profit alternative."""
+    """Compare the default-ceiling policy with the normalized-profit alternative."""
     threshold_grid = np.unique(
         np.concatenate(
             [
@@ -921,7 +921,7 @@ def write_summary(
 
 ## What We Built
 
-This branch keeps Rachel's Logistic Regression workflow as the base and adds probability calibration,
+This branch combines the original Logistic Regression workflow with probability calibration,
 two policy choices, a saved model artifact, frontend-ready routing flags, detailed metrics, routing-error
 analysis, plots, and one written results summary.
 
@@ -970,7 +970,7 @@ regression target.
   imputed and one-hot encoded. The final model matrix contains {output_features:,} columns.
 - No class weighting is used because reliable probabilities matter more than forcing equal class counts.
 
-Rachel's broad engineered feature set remains intact: income and employment, requested-credit and
+The original engineered feature set remains intact: income and employment, requested-credit and
 affordability ratios, risk-score availability, payment and delinquency history, tax-registry aggregates,
 prior-application behavior, external-record counts, and the encoded education, housing, marital-status,
 and credit-file categories all remain available to the model. The feature manifest records every input.
@@ -1017,7 +1017,7 @@ would repay reached an immediate full-loan approval more often than thin-file ap
 The applicants not approved at Stage 1 are routed to the second-look model rather than treated as final
 denials. Reducing this routing gap is one of the main jobs of Stage 2.
 
-For Rachel's default-ceiling policy, `{max_default_rate:.0%}` means the maximum observed default rate for
+For the default-ceiling policy, `{max_default_rate:.0%}` means the maximum observed default rate for
 the **entire approved pool** on policy-validation data. It is not the individual applicant threshold.
 The largest approved pool satisfying that rule produced a {candidates['default_ceiling']:.2%} risk-score
 threshold. The alternate normalized-profit policy selected {candidates['profit']:.2%}.
@@ -1106,7 +1106,7 @@ coefficients.
 - `data/predictions/logistic_*_predictions.csv`: local scores and routing flags for every split.
 - `reports/logistic/BUSINESS_SUMMARY.md`: plain-language results and business decisions.
 - `reports/logistic/model_metrics.csv`: model metrics overall and by applicant segment.
-- `reports/logistic/feature_manifest.csv`: every retained Rachel-baseline input and its preprocessing.
+- `reports/logistic/feature_manifest.csv`: every retained baseline input and its preprocessing.
 - `reports/logistic/hyperparameter_results.csv`: regularization comparison.
 - `reports/logistic/calibration_results.csv`: raw versus calibrated probabilities.
 - `reports/logistic/threshold_results.csv`: policy trade-offs across thresholds.
@@ -1179,7 +1179,7 @@ The current profit calculation uses normalized comparison units:
 
 Under those assumptions, the break-even approved-group default rate is 20%. For every five approved
 applicants, one default offsets the value created by four repayers. The 20% figure is an economic
-reference point, while Rachel's 10% approved-pool ceiling is the stricter operating rule used by the
+reference point, while the 10% approved-pool ceiling is the stricter operating rule used by the
 current Stage 1 policy.
 
 | Holdout policy | Immediate approval | Approved default rate | Normalized total profit | Profit per applicant | Inclusion gap |
@@ -1202,7 +1202,7 @@ team's agreed business values.
 
 ## What the Threshold Means
 
-The active policy uses Rachel's 10% approved-pool default ceiling. The 10% rule applies to the average
+The active policy uses a 10% approved-pool default ceiling. The 10% rule applies to the average
 observed default rate across everyone approved on policy-validation data. It does not mean that every
 approved applicant has exactly 10% predicted risk.
 
@@ -1336,7 +1336,7 @@ def run(
                 else "most-frequent imputation + one-hot encoding"
                 for column in train_features.columns
             ],
-            "model_role": "Rachel baseline input retained",
+            "model_role": "Baseline input retained",
         }
     )
     feature_manifest = pd.concat(

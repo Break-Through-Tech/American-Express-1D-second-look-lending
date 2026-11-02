@@ -2,7 +2,7 @@
 
 ## What We Built
 
-This branch keeps Rachel's Logistic Regression workflow as the base and adds probability calibration,
+This branch combines the original Logistic Regression workflow with probability calibration,
 two policy choices, a saved model artifact, frontend-ready routing flags, detailed metrics, routing-error
 analysis, plots, and one written results summary.
 
@@ -51,7 +51,7 @@ regression target.
   imputed and one-hot encoded. The final model matrix contains 138 columns.
 - No class weighting is used because reliable probabilities matter more than forcing equal class counts.
 
-Rachel's broad engineered feature set remains intact: income and employment, requested-credit and
+The original engineered feature set remains intact: income and employment, requested-credit and
 affordability ratios, risk-score availability, payment and delinquency history, tax-registry aggregates,
 prior-application behavior, external-record counts, and the encoded education, housing, marital-status,
 and credit-file categories all remain available to the model. The feature manifest records every input.
@@ -102,7 +102,7 @@ would repay reached an immediate full-loan approval more often than thin-file ap
 The applicants not approved at Stage 1 are routed to the second-look model rather than treated as final
 denials. Reducing this routing gap is one of the main jobs of Stage 2.
 
-For Rachel's default-ceiling policy, `10%` means the maximum observed default rate for
+For the default-ceiling policy, `10%` means the maximum observed default rate for
 the **entire approved pool** on policy-validation data. It is not the individual applicant threshold.
 The largest approved pool satisfying that rule produced a 21.29% risk-score
 threshold. The alternate normalized-profit policy selected 21.50%.
@@ -203,7 +203,7 @@ coefficients.
 - `data/predictions/logistic_*_predictions.csv`: local scores and routing flags for every split.
 - `reports/logistic/BUSINESS_SUMMARY.md`: plain-language results and business decisions.
 - `reports/logistic/model_metrics.csv`: model metrics overall and by applicant segment.
-- `reports/logistic/feature_manifest.csv`: every retained Rachel-baseline input and its preprocessing.
+- `reports/logistic/feature_manifest.csv`: every retained baseline input and its preprocessing.
 - `reports/logistic/hyperparameter_results.csv`: regularization comparison.
 - `reports/logistic/calibration_results.csv`: raw versus calibrated probabilities.
 - `reports/logistic/threshold_results.csv`: policy trade-offs across thresholds.
