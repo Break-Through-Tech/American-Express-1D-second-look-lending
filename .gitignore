@@ -6,13 +6,14 @@ data/test/*
 data/aggregated/**.csv
 data/cleaned/*.csv
 data/preprocessed/*.csv
+data/lgbm/*.csv
 
 .DS_Store
 data/features/*.csv
 
 context.md
 
-# Logistic regression generated predictions
+# Generated model predictions
 reports/models/logistic_*_predictions.csv
 reports/models/logistic_baseline_score.csv
-data/predictions/logistic_*_predictions.csv
+data/predictions/*.csv
