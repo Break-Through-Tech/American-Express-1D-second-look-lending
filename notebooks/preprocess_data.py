@@ -51,7 +51,7 @@ def main():
     test = convert(test)
 
     # Some columns must be left out of scaling of the numeric columns
-    exclusions = ['case_id', 'target', 'MONTH', 'WEEK_NUM']
+    exclusions = ['case_id', 'target', 'MONTH', 'WEEK_NUM', 'is_thin_file']
 
     # string/categorical columns w/ exclusion filtering
     categorical_cols = train.select_dtypes(include=['object', 'category', 'str']).columns.tolist()
