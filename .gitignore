@@ -12,5 +12,4 @@ data/lgbm/*.csv
 data/features/*.csv
 
 context.md
-
 data/predictions/*.csv
