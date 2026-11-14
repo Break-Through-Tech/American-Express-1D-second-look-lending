@@ -12,4 +12,8 @@ data/lgbm/*.csv
 data/features/*.csv
 
 context.md
+
+# Generated model predictions
+reports/models/logistic_*_predictions.csv
+reports/models/logistic_baseline_score.csv
 data/predictions/*.csv
