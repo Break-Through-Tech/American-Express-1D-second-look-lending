@@ -56,6 +56,8 @@ def apply_prep(X, prep_rules: dict) -> pd.DataFrame:
 
     # handle missing values in numeric columns: -1 -> NaN
     numeric_columns = X.select_dtypes(include="number").columns
+    for col in numeric_columns:
+        X[col] = X[col].mask(X[col] == -1)
 
     for col, categories in prep_rules["categories_by_column"].items():
         X[col] = pd.Categorical(X[col], categories=categories)
