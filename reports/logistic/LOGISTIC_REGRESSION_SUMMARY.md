@@ -59,7 +59,7 @@ and credit-file categories all remain available to the model. The feature manife
 ## Model Selection
 
 Four L2 regularization strengths were compared on weeks 64-69. The selected value was
-`C = 0.01` with LogLoss 0.4050 and
+`C = 0.01` with LogLoss 0.4051 and
 ROC-AUC 0.7649. Smaller `C` values apply stronger regularization.
 
 Raw, sigmoid, and isotonic probabilities were then compared on the later weeks 70-75. The selected
@@ -73,14 +73,14 @@ versus an actual rate of 17.8%.
 | Segment | Applicants | Default rate | Mean predicted PD | ROC-AUC | PR-AUC | LogLoss | Brier |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | All applicants | 174,128 | 17.5% | 18.1% | 0.759 | 0.414 | 0.397 | 0.124 |
-| Established | 122,005 | 16.4% | 15.4% | 0.786 | 0.439 | 0.369 | 0.114 |
-| Thin-file | 52,123 | 20.0% | 24.3% | 0.709 | 0.364 | 0.463 | 0.148 |
+| Established | 122,005 | 16.4% | 15.4% | 0.785 | 0.438 | 0.370 | 0.114 |
+| Thin-file | 52,123 | 20.0% | 24.3% | 0.709 | 0.362 | 0.463 | 0.148 |
 
 The overall holdout ROC-AUC of 0.759 measures ranking: how often a borrower
 who defaulted receives a higher risk score than a borrower who repaid. LogLoss and Brier score judge the
 quality of the probabilities themselves, so confident mistakes receive a larger penalty.
 
-Performance is stronger for established applicants (AUC 0.786) than for
+Performance is stronger for established applicants (AUC 0.785) than for
 thin-file applicants (AUC 0.709). That difference is expected from the EDA:
 established applicants have bureau risk and payment-history fields, while thin-file applicants rely more
 on education, employment, income, affordability, tax-registry, and prior-application information.
@@ -94,38 +94,38 @@ The final two-stage comparison needs to examine subgroup calibration, not only t
 ## Stage 1 Routing Policy
 
 The active policy is **default ceiling** with a probability threshold of
-**21.43%**. On policy-validation weeks, it sent
-70.4% of applicants directly to a full-loan approval, produced an observed default rate of
+**21.29%**. On policy-validation weeks, it sent
+70.7% of applicants directly to a full-loan approval, produced an observed default rate of
 10.0% among approvals, and had an inclusion gap of
-30.4%. A positive inclusion gap means established applicants who
+29.4%. A positive inclusion gap means established applicants who
 would repay reached an immediate full-loan approval more often than thin-file applicants who would repay.
 The applicants not approved at Stage 1 are routed to the second-look model rather than treated as final
 denials. Reducing this routing gap is one of the main jobs of Stage 2.
 
 For the default-ceiling policy, `10%` means the maximum observed default rate for
 the **entire approved pool** on policy-validation data. It is not the individual applicant threshold.
-The largest approved pool satisfying that rule produced a 21.43% risk-score
+The largest approved pool satisfying that rule produced a 21.29% risk-score
 threshold. The alternate normalized-profit policy selected 21.50%.
 
 | Policy-validation threshold | Immediate full-loan rate | Default rate among approved | Profit per applicant | Stage 1 inclusion gap |
 | --- | ---: | ---: | ---: | ---: |
 | Lower Stage 1 reference (15%) | 55.5% | 7.7% | 0.341 | 45.1% |
-| Break-even reference (20%) | 64.0% | 9.0% | 0.353 | 38.9% |
-| Default-ceiling candidate (21.43%) | 70.4% | 10.0% | 0.353 | 30.4% |
-| Profit candidate (21.50%) | 71.0% | 10.0% | 0.354 | 29.2% |
-| Selected baseline (21.43%) | 70.4% | 10.0% | 0.353 | 30.4% |
-| Upper Stage 1 reference (22%) | 74.8% | 10.7% | 0.349 | 22.1% |
+| Break-even reference (20%) | 63.0% | 8.8% | 0.353 | 39.3% |
+| Default-ceiling candidate (21.29%) | 70.7% | 10.0% | 0.354 | 29.4% |
+| Profit candidate (21.50%) | 72.1% | 10.2% | 0.353 | 27.1% |
+| Selected baseline (21.29%) | 70.7% | 10.0% | 0.354 | 29.4% |
+| Upper Stage 1 reference (22%) | 72.1% | 10.2% | 0.353 | 27.1% |
 
 On the untouched holdout period, that same threshold produced:
 
 | Policy | Immediate full-loan rate | Default rate among approved | Profit per applicant | Stage 1 inclusion gap |
 | --- | ---: | ---: | ---: | ---: |
-| Lower Stage 1 reference (15%) | 55.8% | 7.8% | 0.339 | 44.9% |
-| 20% PD reference | 64.4% | 9.1% | 0.351 | 38.8% |
-| Default-ceiling candidate (21.43%) | 70.8% | 10.0% | 0.352 | 29.6% |
-| Profit candidate (21.50%) | 71.4% | 10.1% | 0.352 | 28.4% |
-| Selected threshold (21.4%) | 70.8% | 10.0% | 0.352 | 29.6% |
-| Upper Stage 1 reference (22%) | 75.1% | 10.7% | 0.350 | 21.5% |
+| Lower Stage 1 reference (15%) | 55.8% | 7.9% | 0.339 | 44.9% |
+| 20% PD reference | 63.4% | 8.9% | 0.352 | 39.2% |
+| Default-ceiling candidate (21.29%) | 71.0% | 10.1% | 0.352 | 28.7% |
+| Profit candidate (21.50%) | 72.5% | 10.3% | 0.352 | 26.3% |
+| Selected threshold (21.3%) | 71.0% | 10.1% | 0.352 | 28.7% |
+| Upper Stage 1 reference (22%) | 72.5% | 10.3% | 0.352 | 26.3% |
 
 Profit is reported in normalized units: `+1` for an approved applicant who repays, `-4` for an approved
 applicant who defaults, and `0` for an applicant who is not approved at Stage 1. This creates the 20%
@@ -157,9 +157,9 @@ applicant who received an immediate Stage 1 approval and bypassed Stage 2.
 
 | Segment | Repaid approved | Repaid referred | Default approved | Default referred | Repayer referral rate | Default approval rate |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| All applicants | 110,881 | 32,814 | 12,388 | 18,045 | 22.8% | 40.7% |
-| Established | 87,477 | 14,537 | 9,621 | 10,370 | 14.3% | 48.1% |
-| Thin-file | 23,404 | 18,277 | 2,767 | 7,675 | 43.8% | 26.5% |
+| All applicants | 111,217 | 32,478 | 12,490 | 17,943 | 22.6% | 41.0% |
+| Established | 87,449 | 14,565 | 9,606 | 10,385 | 14.3% | 48.1% |
+| Thin-file | 23,768 | 17,913 | 2,884 | 7,558 | 43.0% | 27.6% |
 
 False positives cost convenience but still receive a second review. False negatives are the more direct
 credit-risk error because they bypass Stage 2. Reporting both by segment keeps those trade-offs visible.
@@ -175,21 +175,21 @@ because the source data does not provide their real-world names.
 
 | Feature | Coefficient | Odds ratio | Interpretation |
 | --- | ---: | ---: | --- |
-| Education category 2d4a2bc4 | 0.663 | 1.94 | higher predicted default risk |
-| Risk assessment score | 0.474 | 1.61 | higher predicted default risk |
-| Education category 242b264b | 0.227 | 1.26 | higher predicted default risk |
-| Risk assessment score missing | 0.150 | 1.16 | higher predicted default risk |
-| Average days past due | 0.067 | 1.07 | higher predicted default risk |
+| Education category 2d4a2bc4 | 0.679 | 1.97 | higher predicted default risk |
+| Risk assessment score | 0.472 | 1.60 | higher predicted default risk |
+| Education category 242b264b | 0.242 | 1.27 | higher predicted default risk |
+| Risk assessment score missing | 0.156 | 1.17 | higher predicted default risk |
+| Average days past due | 0.095 | 1.10 | higher predicted default risk |
 
 ### Lower Predicted Risk
 
 | Feature | Coefficient | Odds ratio | Interpretation |
 | --- | ---: | ---: | --- |
-| Education category f937ecaa | -1.201 | 0.30 | lower predicted default risk |
-| Education category 10795bac | -0.614 | 0.54 | lower predicted default risk |
-| Credit-file description MISSING | -0.304 | 0.74 | lower predicted default risk |
-| Marital-status category ea6fb4b5 | -0.277 | 0.76 | lower predicted default risk |
-| Marital-status category f62a4fc7 | -0.272 | 0.76 | lower predicted default risk |
+| Education category f937ecaa | -1.195 | 0.30 | lower predicted default risk |
+| Education category 10795bac | -0.600 | 0.55 | lower predicted default risk |
+| Credit-file description MISSING | -0.284 | 0.75 | lower predicted default risk |
+| Marital-status category ea6fb4b5 | -0.260 | 0.77 | lower predicted default risk |
+| Marital-status category f62a4fc7 | -0.256 | 0.77 | lower predicted default risk |
 
 Coefficients describe the model's fitted associations, not proof that changing a feature would cause a
 different repayment outcome. Correlated fields can also divide the same signal across several

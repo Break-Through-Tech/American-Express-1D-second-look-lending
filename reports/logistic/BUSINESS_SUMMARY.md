@@ -16,15 +16,15 @@ it before either model is used for the second-look stage.
 | --- | ---: |
 | Applicants reviewed | 174,128 |
 | Overall ROC-AUC | 0.759 |
-| Stage 1 risk threshold | 21.43% |
-| Immediate full-loan approval rate | 70.8% |
-| Referred to second look | 29.2% |
-| Default rate among immediate approvals | 10.0% |
+| Stage 1 risk threshold | 21.29% |
+| Immediate full-loan approval rate | 71.0% |
+| Referred to second look | 29.0% |
+| Default rate among immediate approvals | 10.1% |
 | Normalized profit per applicant | 0.352 |
-| Stage 1 inclusion gap | 29.6% |
+| Stage 1 inclusion gap | 28.7% |
 
 The model's overall ROC-AUC of 0.759 shows useful risk ranking. Performance is
-stronger for established applicants at 0.786 than for thin-file applicants
+stronger for established applicants at 0.785 than for thin-file applicants
 at 0.709. This difference is the main reason the project needs a second-look stage.
 
 ## Profitability View
@@ -42,12 +42,12 @@ current Stage 1 policy.
 
 | Holdout policy | Immediate approval | Approved default rate | Normalized total profit | Profit per applicant | Inclusion gap |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Conservative 15% threshold | 55.8% | 7.8% | 59,032 | 0.3390 | 44.9% |
-| 20% risk reference | 64.4% | 9.1% | 61,205 | 0.3515 | 38.8% |
-| Active 10% approved-pool policy | 70.8% | 10.0% | 61,329 | 0.3522 | 29.6% |
-| Maximum-profit candidate | 71.4% | 10.1% | 61,365 | 0.3524 | 28.4% |
+| Conservative 15% threshold | 55.8% | 7.9% | 59,001 | 0.3388 | 44.9% |
+| 20% risk reference | 63.4% | 8.9% | 61,234 | 0.3517 | 39.2% |
+| Active 10% approved-pool policy | 71.0% | 10.1% | 61,257 | 0.3518 | 28.7% |
+| Maximum-profit candidate | 72.5% | 10.3% | 61,278 | 0.3519 | 26.3% |
 
-The maximum-profit candidate produced only 36 more normalized profit units than the active policy across
+The maximum-profit candidate produced only 21 more normalized profit units than the active policy across
 174,128 applicants. It also approved more applicants immediately and had a slightly
 higher approved-group default rate. The profit gain is very small, so the active policy gives up almost no
 modeled profit while staying closer to the team's 10% validation limit and sending more borderline
@@ -64,23 +64,23 @@ The active policy uses a 10% approved-pool default ceiling. The 10% rule applies
 observed default rate across everyone approved on policy-validation data. It does not mean that every
 approved applicant has exactly 10% predicted risk.
 
-That policy produced a 21.43% individual risk-score threshold. On the untouched holdout
-period, it approved 70.8% of applicants immediately and referred
-29.2% for a second look. The approved group had a
-10.0% observed default rate. The small difference from the 10%
+That policy produced a 21.29% individual risk-score threshold. On the untouched holdout
+period, it approved 71.0% of applicants immediately and referred
+29.0% for a second look. The approved group had a
+10.1% observed default rate. The small difference from the 10%
 validation ceiling is normal movement between time periods.
 
 ## Applicant Experience and Credit Risk
 
-At the selected threshold, 32,814 applicants who later
+At the selected threshold, 32,478 applicants who later
 repaid were sent to the second-look model instead of being immediately approved. They still receive
-another review. At the same time, 12,388 applicants
+another review. At the same time, 12,490 applicants
 who later defaulted received an immediate approval and bypassed Stage 2. These are the more direct
 credit-risk errors.
 
-Thin-file repayers were referred at a 43.8% rate, compared with
+Thin-file repayers were referred at a 43.0% rate, compared with
 14.3% for established repayers. The Stage 1 inclusion gap is
-29.6%. The second-look model needs to recover qualified thin-file
+28.7%. The second-look model needs to recover qualified thin-file
 applicants without increasing losses beyond the team's agreed limit.
 
 ## How It Fits Into the Final Product
@@ -88,7 +88,7 @@ applicants without increasing losses beyond the team's agreed limit.
 ```mermaid
 flowchart TD
     A[Applicant] --> B[Stage 1 Logistic Regression]
-    B --> C{Risk below 21.43%?}
+    B --> C{Risk below 21.29%?}
     C -->|Yes| D[Approve full requested loan]
     C -->|No| E[Second-look model]
     E --> F[Business policy]
