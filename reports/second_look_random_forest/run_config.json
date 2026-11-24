@@ -1,0 +1,41 @@
+{
+  "stage1_threshold": 0.21290050446987155,
+  "stage1_approved": {
+    "tune": 92145,
+    "holdout": 123754,
+    "score": 142261
+  },
+  "weeks": {
+    "train": "0-63",
+    "settings": "64-69",
+    "calibration": "70-72",
+    "second_cutoff": "73-75",
+    "holdout": "76-91"
+  },
+  "train_rows": 208563,
+  "referred_rows": {
+    "settings": 9636,
+    "calibration": 4946,
+    "second_cutoff": 4817,
+    "holdout": 25466,
+    "score": 29283
+  },
+  "quick": false,
+  "settings": {
+    "n_estimators": 300,
+    "max_depth": null,
+    "min_samples_leaf": 500,
+    "max_features": "sqrt"
+  },
+  "calibration_method": "sigmoid",
+  "max_approved_default_rate": 0.1,
+  "selected_second_cutoff": 0.16,
+  "most_profitable_second_cutoff": 0.2,
+  "all_applicants_rows": true,
+  "versions": {
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.9.0",
+    "scipy": "1.18.1"
+  }
+}

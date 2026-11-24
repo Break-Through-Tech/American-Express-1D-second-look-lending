@@ -1,21 +1,21 @@
 """
 train_random_forest.py
 
-Random forest trained on all applicants, the first model in the Advisor's design. Thin-file
-applicants it rejects get a second look from train_second_look_random_forest.py, which reads the
-holdout predictions this script writes.
+Random forest trained on all applicants to compare with the logistic regression and LightGBM. Its
+holdout predictions also go into the comparison rows of train_second_look_random_forest.py.
 
 Run after features.py:
 
-    python models/train_random_forest.py          # about 20 minutes
+    python models/train_random_forest.py          # about 25 minutes
     python models/train_random_forest.py --quick  # skip the tuning loop
 
 Splits are from splits.py. Settings and calibration are picked on the tune weeks and the holdout is
-scored once. Tables and plots go to reports/random_forest, the model to models/artifacts
-(gitignored, about 75 MB).
+scored once. Tables and plots go to reports/random_forest and the model to
+models/artifacts/random_forest.joblib (gitignored).
 """
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -44,16 +44,15 @@ REPORTS_DIR = ROOT_DIR / "reports" / "random_forest"
 
 TEXT_COLS = ["education_927M", "maritalstatus_703M", "description_5085714M"]
 BOOL_COLS = ["has_second_person"]
-# not inputs. is_thin_file is only for checking results by group, and external_coverage counts the
-# bureau as one of its sources so it would give the segment away
+# not inputs. is_thin_file is only for checking results by group and external_coverage counts
+# bureau records so it would give the group away
 EXCLUDED_COLS = [SEGMENT, "external_coverage"]
 
 SEED = 42
-CUTOFF = 0.20            # approve if the chance of default is under this (Advisor's cost model)
+CUTOFF = 0.20            # approve if the chance of default is under this
 PROFIT_REPAID = 2000     # earned on a loan that is paid back
 PROFIT_DEFAULT = -8000   # lost on a loan that defaults
 TUNE_SAMPLE_ROWS = 200_000
-# same range as team 1C's sweep
 SWEEP_CUTOFFS = np.round(np.arange(0.08, 0.42, 0.02), 2)
 
 DEFAULT_SETTINGS = {
@@ -63,7 +62,7 @@ DEFAULT_SETTINGS = {
     "max_features": "sqrt",
 }
 
-# the Advisor's slide lists tree count, depth and leaf size. tree count stays fixed, more trees only cost time
+# tree count is not tuned because more trees only cost time
 GRID = [
     {"max_depth": d, "min_samples_leaf": leaf, "max_features": feats}
     for d in (None, 16)
@@ -161,13 +160,14 @@ def calibrate(p: np.ndarray, seg: pd.Series, calibrators: dict) -> np.ndarray:
     out = p.copy()
     for value, calibrator in calibrators.items():
         rows = (seg == value).to_numpy()
-        out[rows] = calibrator.predict(p[rows])
+        # same clip as the logistic model since an exact 0 or 1 breaks logloss
+        out[rows] = np.clip(calibrator.predict(p[rows]), 1e-6, 1 - 1e-6)
     return out
 
 
 # ------------- evaluation --------------------------------
 def inclusion_gap(p: np.ndarray, y: pd.Series, seg: pd.Series, cutoff: float = CUTOFF) -> float:
-    """Approval rate among repayers, established minus thin-file (formula from splits.py)."""
+    """Approval rate among repayers for established minus thin-file (same formula as splits.py)."""
     approved = p < cutoff
     repaid = (y == 0).to_numpy()
     seg = seg.to_numpy()
@@ -175,7 +175,7 @@ def inclusion_gap(p: np.ndarray, y: pd.Series, seg: pd.Series, cutoff: float = C
 
 
 def expected_profit(p: np.ndarray, y: pd.Series, cutoff: float = CUTOFF) -> float:
-    """Advisor's slide 8: +2000 per repaid loan, -8000 per default."""
+    """+2000 for each repaid loan and -8000 for each default."""
     approved = p < cutoff
     outcomes = np.where(y.to_numpy()[approved] == 1, PROFIT_DEFAULT, PROFIT_REPAID)
     return float(outcomes.sum())
@@ -310,7 +310,7 @@ def main(quick: bool) -> None:
     # fitted on tune only
     calibrators = fit_calibrators(p_tune, y_tune, seg_tune)
 
-    # holdout, scored once
+    # holdout is scored once
     p_hold_raw = model.predict_proba(X_hold)[:, 1]
     p_hold_cal = calibrate(p_hold_raw, seg_hold, calibrators)
     results = pd.DataFrame(
@@ -348,6 +348,8 @@ def main(quick: bool) -> None:
     score["score"] = 1 - score["p_default"]   # chance they pay it back
     score.to_csv(PREDICTIONS_DIR / "random_forest_score.csv", index=False)
 
+    config = {"settings": settings, "quick": quick}
+    (REPORTS_DIR / "run_config.json").write_text(json.dumps(config, indent=2) + "\n")
     results.to_csv(REPORTS_DIR / "metrics.csv", index=False)
     importance.to_csv(REPORTS_DIR / "feature_importance.csv", index=False)
     sweep.to_csv(REPORTS_DIR / "cutoff_sweep.csv", index=False)
