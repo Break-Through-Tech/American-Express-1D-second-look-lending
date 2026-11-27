@@ -17,3 +17,7 @@ context.md
 reports/models/logistic_*_predictions.csv
 reports/models/logistic_baseline_score.csv
 data/predictions/*.csv
+
+# Random forest models (too big for git)
+models/artifacts/random_forest.joblib
+models/artifacts/second_look_random_forest.joblib
